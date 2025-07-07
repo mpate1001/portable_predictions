@@ -4,7 +4,7 @@ pandas
 streamlit
 
 # Serialization
-pickle5  # standard pickle is built-in but pickle5 is safest if you need pip
+pickle5
 joblib
 
 # Plots
@@ -16,19 +16,8 @@ plotly
 scikit-learn
 xgboost
 shap
-tensorflow
+tensorflow==2.15.0  # Compatible stable version
 keras
 
 # Database
 SQLAlchemy
-
-# Utils
-warnings  # built-in, no need to list
-datetime  # built-in, no need to list
-os  # built-in, no need to list
-
-# If you have a local module
-# Model_Trainer  # REMOVE unless you publish as a package
-
-# Note: If deploying to Streamlit Cloud, specify Python version if needed:
-# python_version = "3.10"
