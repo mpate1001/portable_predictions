@@ -4,34 +4,34 @@
 # Authors: Joe Bryant, Mahek Patel, Nathan Deering
 # ================================
 
-import numpy as np
-import pandas as pd
-import streamlit as st
-import pickle
-import joblib
 import os
+import pickle
+import warnings
 from datetime import datetime
 
+import joblib
 import matplotlib.pyplot as plt
-import seaborn as sns
+import numpy as np
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-
-# Core ML Libraries (Proposal Models Only)
-from sklearn.model_selection import train_test_split, cross_val_score, KFold
-from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.linear_model import LinearRegression, Ridge
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
-import xgboost as xgb
+import seaborn as sns
 
 # SHAP for Interpretability (Required by Proposal)
 import shap
+import streamlit as st
+import xgboost as xgb
+from plotly.subplots import make_subplots
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LinearRegression, Ridge
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+
+# Core ML Libraries (Proposal Models Only)
+from sklearn.model_selection import KFold, cross_val_score, train_test_split
+from sklearn.preprocessing import LabelEncoder, StandardScaler
 
 # Database & Utils
 from sqlalchemy import create_engine, text
-import warnings
 
 warnings.filterwarnings("ignore")
 
@@ -1214,7 +1214,7 @@ def create_streamlined_sidebar(results):
             st.warning("Performance data not available")
 
         st.markdown("---")
-        st.success("**Academic Compliance**")
+        st.success("**Methods Used**")
         st.info("Linear Regression baseline")
         st.info("Ridge L2 regularization")
         st.info("Random Forest ensemble")
@@ -1265,7 +1265,7 @@ def main():
         unsafe_allow_html=True,
     )
     st.markdown(
-        '<div class="academic-badge">Streamlined Proposal-Aligned Version</div>',
+        '<div class="academic-badge">Smart Price Estiamtes powered by ML</div>',
         unsafe_allow_html=True,
     )
 
@@ -1390,7 +1390,7 @@ def main():
         predict_button = st.button(
             "Run Analysis", type="primary", use_container_width=True
         )
-        reset_button = st.button("🔄 Reset", use_container_width=True)
+        reset_button = st.button("Reset", use_container_width=True)
 
         if county and county in crime_df["County"].values:
             market_info = crime_df[crime_df["County"] == county].iloc[0]
