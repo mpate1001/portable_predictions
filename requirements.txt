@@ -17,5 +17,5 @@ xgboost
 shap
 tensorflow==2.15.0
 
-# Database
 SQLAlchemy
+psycopg2-binary
