@@ -16,8 +16,7 @@ plotly
 scikit-learn
 xgboost
 shap
-tensorflow==2.15.0  # Compatible stable version
-keras
+tensorflow==2.15.0
 
 # Database
 SQLAlchemy
