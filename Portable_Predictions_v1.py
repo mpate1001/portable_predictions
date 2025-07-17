@@ -93,7 +93,7 @@ def load_datasets():
         housing_df['county_clean'] = housing_df['county'].str.replace(' County', '').str.strip()
         
         datasets['housing'] = housing_df
-        st.success(f"✅ Loaded {len(housing_df):,} housing records")
+        st.success(f"Loaded {len(housing_df):,} housing records")
         
         # Load crime data
         crime_df = pd.read_csv('crime_data.csv')
@@ -122,7 +122,7 @@ def load_datasets():
         ).clip(0, 100)
         
         datasets['crime'] = latest_crime
-        st.success(f"✅ Loaded crime data for {len(latest_crime)} counties")
+        st.success(f"Loaded crime data for {len(latest_crime)} counties")
         
         # Get available counties and ZIP codes
         counties = sorted(housing_df['county_clean'].unique())
@@ -134,7 +134,7 @@ def load_datasets():
         return datasets
         
     except Exception as e:
-        st.error(f"❌ Error loading datasets: {e}")
+        st.error(f"Error loading datasets: {e}")
         return {}
 
 @st.cache_resource
@@ -144,7 +144,7 @@ def load_trained_models():
     models_dir = 'saved_models'
     
     if not os.path.exists(models_dir):
-        st.error("❌ No saved models found! Please run csv_model_trainer.py first.")
+        st.error("No saved models found! Please run csv_model_trainer.py first.")
         return None
     
     try:
@@ -164,7 +164,7 @@ def load_trained_models():
             if os.path.exists(filepath):
                 models[name] = joblib.load(filepath)
             else:
-                st.warning(f"⚠️ {filename} not found, skipping {name}")
+                st.warning(f"{filename} not found, skipping {name}")
         
         # Load scaler
         scaler_path = os.path.join(models_dir, 'scaler.pkl')
@@ -186,7 +186,7 @@ def load_trained_models():
         with open(metadata_path, 'rb') as f:
             metadata = pickle.load(f)
         
-        st.success(f"✅ Loaded {len(models)} models successfully")
+        st.success(f"Loaded {len(models)} models successfully")
         
         return {
             'models': models,
@@ -198,7 +198,7 @@ def load_trained_models():
         }
         
     except Exception as e:
-        st.error(f"❌ Error loading models: {e}")
+        st.error(f"Error loading models: {e}")
         return None
 
 # ================================
@@ -374,22 +374,22 @@ def create_folium_map(county, zip_code, housing_data, crime_data):
                 marker_color = 'blue'
                 marker_size = 15
                 icon_color = 'white'
-                popup_prefix = "📍 SELECTED ZIP: "
+                popup_prefix = "SELECTED ZIP: "
             else:
                 marker_color = color
                 marker_size = 10
                 icon_color = 'white'
-                popup_prefix = "📍 ZIP: "
+                popup_prefix = "ZIP: "
             
             # Create popup with detailed information
             popup_text = f"""
             {popup_prefix}{row['zip']}<br>
-            🏙️ City: {row['primary_city']}<br>
-            🏠 Properties: {row['property_count']} listings<br>
-            💰 Avg Price: ${row['avg_price']:,.0f}<br>
-            🛡️ Safety Score: {safety_score:.1f}/100<br>
-            🚨 Violent Crime: {county_crime['violent_rate']:.0f}<br>
-            🚨 Property Crime: {county_crime['property_rate']:.0f}
+            City: {row['primary_city']}<br>
+            Properties: {row['property_count']} listings<br>
+            Avg Price: ${row['avg_price']:,.0f}<br>
+            Safety Score: {safety_score:.1f}/100<br>
+            Violent Crime: {county_crime['violent_rate']:.0f}<br>
+            Property Crime: {county_crime['property_rate']:.0f}
             """
             
             # Add marker with ZIP code as icon
@@ -440,9 +440,9 @@ def create_folium_map(county, zip_code, housing_data, crime_data):
             z-index: 1000;
         ">
             <strong>📍 {county} County</strong><br>
-            🛡️ Safety Score: {safety_score:.1f}/100<br>
-            🏠 ZIP Codes: {len(zip_groups)} areas<br>
-            📊 Properties: {len(county_housing):,} listings
+            Safety Score: {safety_score:.1f}/100<br>
+            ZIP Codes: {len(zip_groups)} areas<br>
+            Properties: {len(county_housing):,} listings
         </div>
         """
         
@@ -462,7 +462,7 @@ def create_folium_map(county, zip_code, housing_data, crime_data):
         box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         z-index: 1000;
     ">
-        <strong>🗺️ Map Legend</strong><br>
+        <strong>Map Legend</strong><br>
         <span style="color: green;">●</span> Safe Areas (80+ score)<br>
         <span style="color: orange;">●</span> Moderate Areas (60-79)<br>
         <span style="color: red;">●</span> High Risk Areas (<60)<br>
@@ -479,10 +479,10 @@ def display_model_diagnostics(models, X_test, y_test):
     """Display comprehensive model diagnostic plots"""
     
     if y_test is None:
-        st.warning("⚠️ Test data not available for diagnostics")
+        st.warning("Test data not available for diagnostics")
         return
     
-    st.header("📊 Model Diagnostics")
+    st.header("Model Diagnostics")
     
     # Use XGBoost as primary model for diagnostics
     if 'XGBoost' in models:
@@ -584,10 +584,10 @@ def display_property_analysis(datasets, model_data):
     col1, col2 = st.columns([3, 2])
     
     with col1:
-        st.header("🏡 Property Analysis")
+        st.header("Property Analysis")
         
         # Location selection
-        st.subheader("📍 Location")
+        st.subheader("Location")
         location_col1, location_col2 = st.columns(2)
         
         with location_col1:
@@ -614,12 +614,12 @@ def display_property_analysis(datasets, model_data):
                 property_count = len(zip_data)
                 primary_city = zip_data['primary_city'].iloc[0]
                 
-                st.info(f"📍 **ZIP {selected_zip}** | {primary_city} | {property_count} properties | Avg: ${avg_price:,.0f}")
+                st.info(f"**ZIP {selected_zip}** | {primary_city} | {property_count} properties | Avg: ${avg_price:,.0f}")
             else:
                 st.warning(f"No data available for ZIP {selected_zip}")
         
         # Property characteristics
-        st.subheader("🏠 Property Details")
+        st.subheader("Property Details")
         prop_col1, prop_col2, prop_col3 = st.columns(3)
         
         with prop_col1:
@@ -642,20 +642,20 @@ def display_property_analysis(datasets, model_data):
         )
     
     with col2:
-        st.header("🎯 Analysis Options")
+        st.header("Analysis Options")
         
         analysis_type = st.selectbox(
             "Analysis Type",
             ["Full Investment Analysis", "Model Comparison", "SHAP Interpretability", "Model Diagnostics"]
         )
         
-        run_analysis = st.button("🔮 Run Analysis", type="primary", use_container_width=True)
+        run_analysis = st.button("Run Analysis", type="primary", use_container_width=True)
         
         # Display county crime info
         if selected_county:
             crime_data = get_county_crime_data(selected_county, datasets['crime'])
             
-            st.markdown("### 📈 Area Context")
+            st.markdown("###Area Context")
             col_a, col_b = st.columns(2)
             with col_a:
                 st.metric("Safety Score", f"{crime_data['safety_score']:.1f}/100")
@@ -665,7 +665,7 @@ def display_property_analysis(datasets, model_data):
                 st.metric("ZIP Code", selected_zip)
     
     # Enhanced Crime heat map with ZIP code focus
-    st.subheader("🗺️ Interactive Crime & Property Map")
+    st.subheader("Interactive Crime & Property Map")
     
     # ZIP code statistics before map (to avoid nested columns)
     if selected_zip and selected_zip != "No ZIP codes available":
@@ -722,7 +722,7 @@ def display_property_analysis(datasets, model_data):
         if selected_county:
             crime_data = get_county_crime_data(selected_county, datasets['crime'])
             st.markdown("---")
-            st.markdown("### 📊 County Safety")
+            st.markdown("###County Safety")
             st.metric("Safety Score", f"{crime_data['safety_score']:.1f}/100")
             st.metric("Violent Crime", f"{crime_data['violent_rate']:.0f}")
             st.metric("Property Crime", f"{crime_data['property_rate']:.0f}")
@@ -770,7 +770,7 @@ def display_property_analysis(datasets, model_data):
                 predictions[name] = max(0, pred_value)  # Ensure positive
                 
             except Exception as e:
-                st.error(f"❌ Error with {name}: {e}")
+                st.error(f"Error with {name}: {e}")
                 continue
         
         # Display results based on analysis type
@@ -788,7 +788,7 @@ def display_property_analysis(datasets, model_data):
 def display_data_explorer(datasets):
     """Comprehensive data exploration dashboard"""
     
-    st.header("📊 Dataset Overview & Market Analysis")
+    st.header("Dataset Overview & Market Analysis")
     
     # High-level metrics
     col1, col2, col3, col4 = st.columns(4)
@@ -804,7 +804,7 @@ def display_data_explorer(datasets):
         st.metric("Avg Property Value", f"${avg_price:,.0f}")
     
     # Geographic coverage
-    st.subheader("🗺️ Geographic Coverage")
+    st.subheader("Geographic Coverage")
     coord_coverage = datasets['housing'].dropna(subset=['latitude', 'longitude']).shape[0]
     coverage_pct = (coord_coverage / len(datasets['housing'])) * 100
     
@@ -818,7 +818,7 @@ def display_data_explorer(datasets):
         st.metric("Price Range", price_range)
     
     # Price distribution by county
-    st.subheader("💰 Property Values by County")
+    st.subheader("Property Values by County")
     
     county_stats = datasets['housing'].groupby('county_clean').agg({
         'valp': ['count', 'mean', 'median', 'std'],
@@ -856,7 +856,7 @@ def display_data_explorer(datasets):
         st.plotly_chart(fig, use_container_width=True)
     
     # Property characteristics analysis
-    st.subheader("🏠 Property Characteristics")
+    st.subheader("Property Characteristics")
     
     char_col1, char_col2 = st.columns(2)
     
@@ -881,7 +881,7 @@ def display_data_explorer(datasets):
         st.plotly_chart(fig, use_container_width=True)
     
     # Crime analysis
-    st.subheader("🚨 Crime & Safety Analysis")
+    st.subheader("Crime & Safety Analysis")
     
     crime_col1, crime_col2 = st.columns(2)
     
@@ -900,7 +900,7 @@ def display_data_explorer(datasets):
         st.plotly_chart(fig, use_container_width=True)
     
     # County-level crime comparison
-    st.subheader("🏆 Top Safest Counties")
+    st.subheader("Top Safest Counties")
     crime_viz = datasets['crime'].nlargest(10, 'safety_score')[['county_clean', 'safety_score', 'violent_rate', 'property_rate']]
     
     fig = px.bar(
@@ -915,7 +915,7 @@ def display_data_explorer(datasets):
     st.plotly_chart(fig, use_container_width=True)
     
     # Data quality assessment
-    st.subheader("📋 Data Quality Assessment")
+    st.subheader("Data Quality Assessment")
     
     quality_col1, quality_col2 = st.columns(2)
     
@@ -933,7 +933,7 @@ def display_data_explorer(datasets):
         if len(missing_df) > 0:
             st.dataframe(missing_df, use_container_width=True)
         else:
-            st.success("✅ No missing data found!")
+            st.success("No missing data found!")
     
     with quality_col2:
         st.write("**Data Types & Coverage**")
@@ -958,7 +958,7 @@ def display_data_explorer(datasets):
 def display_model_insights(model_data):
     """Enhanced model performance and insights"""
     
-    st.header("🔬 Model Performance & Technical Insights")
+    st.header("Model Performance & Technical Insights")
     
     if not model_data or 'metadata' not in model_data:
         st.warning("Model data not available")
@@ -980,7 +980,7 @@ def display_model_insights(model_data):
         st.metric("Training Samples", f"{data_summary.get('n_samples', 'N/A'):,}")
     
     # Feature importance (if available)
-    st.subheader("📊 Feature Importance Analysis")
+    st.subheader("Feature Importance Analysis")
     
     if 'XGBoost' in model_data['models'] and model_data['X_test'] is not None:
         model = model_data['models']['XGBoost']
@@ -1007,7 +1007,7 @@ def display_model_insights(model_data):
     
     # Model comparison details
     if 'model_performance' in metadata:
-        st.subheader("🏆 Detailed Model Performance Comparison")
+        st.subheader("Detailed Model Performance Comparison")
         
         results_df = pd.DataFrame(metadata['model_performance']).T
         
@@ -1050,7 +1050,7 @@ def display_model_insights(model_data):
             st.plotly_chart(fig_rmse, use_container_width=True)
         
         # Full metrics table
-        st.subheader("📈 Complete Performance Metrics")
+        st.subheader("Complete Performance Metrics")
         st.dataframe(results_df.round(4), use_container_width=True)
         
         # Best model highlight
@@ -1059,7 +1059,7 @@ def display_model_insights(model_data):
             best_r2 = results_df.loc[best_model, 'Test_R2']
             best_rmse = results_df.loc[best_model, 'Test_RMSE'] if 'Test_RMSE' in results_df.columns else 'N/A'
             
-            st.success(f"🏆 **Best Performing Model**: {best_model}")
+            st.success(f"**Best Performing Model**: {best_model}")
             col1, col2 = st.columns(2)
             with col1:
                 st.metric("Best R² Score", f"{best_r2:.4f}")
@@ -1068,7 +1068,7 @@ def display_model_insights(model_data):
                     st.metric("Corresponding RMSE", f"{best_rmse:.4f}")
     
     # Technical details
-    st.subheader("⚙️ Technical Configuration")
+    st.subheader("Technical Configuration")
     
     tech_col1, tech_col2 = st.columns(2)
     
@@ -1102,7 +1102,7 @@ def display_model_insights(model_data):
     
     # Model predictions distribution (if test data available)
     if model_data['X_test'] is not None and model_data['y_test'] is not None:
-        st.subheader("📊 Prediction Analysis")
+        st.subheader("Prediction Analysis")
         
         # Generate predictions for all models
         pred_col1, pred_col2 = st.columns(2)
@@ -1166,7 +1166,7 @@ def display_full_investment_analysis(predictions, purchase_price, crime_data, co
     market_context = {'is_urban': county in ['Los Angeles', 'San Francisco'], 'has_coordinates': True}
     investment_score, score_breakdown = calculate_investment_score(predictions, purchase_price, crime_data, market_context)
     
-    st.header("📈 Investment Analysis Results")
+    st.header("Investment Analysis Results")
     
     # Investment recommendation
     col1, col2, col3 = st.columns([1, 2, 1])
@@ -1192,19 +1192,19 @@ def display_full_investment_analysis(predictions, purchase_price, crime_data, co
         """, unsafe_allow_html=True)
     
     # Score breakdown
-    st.subheader("📊 Score Components Analysis")
+    st.subheader("Score Components Analysis")
     score_col1, score_col2 = st.columns(2)
     
     with score_col1:
-        st.metric("💰 Price Analysis", f"{score_breakdown['price_score']:.1f}/100", 
+        st.metric("Price Analysis", f"{score_breakdown['price_score']:.1f}/100", 
                  f"{score_breakdown['price_differential']:.1%} vs purchase price")
-        st.metric("🔒 Safety Score", f"{score_breakdown['safety_score']:.1f}/100",
+        st.metric("Safety Score", f"{score_breakdown['safety_score']:.1f}/100",
                  "Based on crime statistics")
     
     with score_col2:
-        st.metric("🤝 Model Consensus", f"{score_breakdown['consensus_score']:.1f}/100",
+        st.metric("Model Consensus", f"{score_breakdown['consensus_score']:.1f}/100",
                  f"±${score_breakdown['prediction_std']:,.0f} variation")
-        st.metric("🏙️ Market Context", f"{score_breakdown['context_score']:.1f}/100",
+        st.metric("Market Context", f"{score_breakdown['context_score']:.1f}/100",
                  f"{county} market factors")
     
     # Detailed breakdown chart
@@ -1231,28 +1231,28 @@ def display_full_investment_analysis(predictions, purchase_price, crime_data, co
     display_prediction_comparison(predictions, purchase_price)
     
     # Investment insights
-    st.subheader("💡 Investment Insights")
+    st.subheader("Investment Insights")
     
     insights = []
     
     if score_breakdown['price_differential'] > 0.1:
-        insights.append("✅ Models predict property value significantly above purchase price")
+        insights.append("Models predict property value significantly above purchase price")
     elif score_breakdown['price_differential'] < -0.1:
-        insights.append("⚠️ Models predict property value below purchase price")
+        insights.append("Models predict property value below purchase price")
     else:
-        insights.append("ℹ️ Models predict property value close to purchase price")
+        insights.append("Models predict property value close to purchase price")
     
     if crime_data['safety_score'] > 80:
-        insights.append("✅ Excellent safety rating for the area")
+        insights.append("Excellent safety rating for the area")
     elif crime_data['safety_score'] > 60:
-        insights.append("ℹ️ Moderate safety rating for the area")
+        insights.append("Moderate safety rating for the area")
     else:
-        insights.append("⚠️ Lower safety rating - consider security measures")
+        insights.append("Lower safety rating - consider security measures")
     
     if score_breakdown['consensus_score'] > 80:
-        insights.append("✅ High model agreement increases confidence")
+        insights.append("High model agreement increases confidence")
     else:
-        insights.append("ℹ️ Some model disagreement - consider additional research")
+        insights.append("Some model disagreement - consider additional research")
     
     for insight in insights:
         st.write(insight)
@@ -1263,7 +1263,7 @@ def display_model_performance(metadata):
     if 'model_performance' not in metadata:
         return
     
-    st.subheader("🏆 Model Performance Summary")
+    st.subheader("Model Performance Summary")
     
     results = metadata['model_performance']
     perf_df = pd.DataFrame(results).T
@@ -1278,7 +1278,7 @@ def display_model_performance(metadata):
 def display_prediction_comparison(predictions, purchase_price):
     """Display model prediction comparison"""
     
-    st.subheader("🤖 Model Predictions Comparison")
+    st.subheader("Model Predictions Comparison")
     
     pred_df = pd.DataFrame({
         'Model': list(predictions.keys()),
@@ -1332,7 +1332,7 @@ def main():
     """Main Streamlit application"""
     
     # Header
-    st.markdown('<div class="main-header">🏠 Portable Predictions</div>', unsafe_allow_html=True)
+    st.markdown('<div class="main-header">Portable Predictions</div>', unsafe_allow_html=True)
     st.markdown('<div class="sub-header">Advanced Housing Investment Analysis with ML & Crime Data Integration</div>', unsafe_allow_html=True)
     
     # Load data and models
@@ -1340,38 +1340,38 @@ def main():
     model_data = load_trained_models()
     
     if not datasets or not model_data:
-        st.error("❌ Required data not loaded. Please check data files and run csv_model_trainer.py first.")
+        st.error("Required data not loaded. Please check data files and run csv_model_trainer.py first.")
         return
     
     # Sidebar - Model info and performance
     with st.sidebar:
-        st.header("📊 System Dashboard")
+        st.header("System Dashboard")
         
         if model_data['metadata']:
             trained_at = model_data['metadata'].get('trained_at', 'Unknown')
-            st.info(f"🕐 **Last Trained**: {trained_at}")
+            st.info(f"**Last Trained**: {trained_at}")
             
             # Quick performance summary
             if 'model_performance' in model_data['metadata']:
                 results = model_data['metadata']['model_performance']
                 best_model = max(results.keys(), key=lambda k: results[k].get('Test_R2', 0))
                 best_r2 = results[best_model].get('Test_R2', 0)
-                st.success(f"🏆 **Best Model**: {best_model}")
+                st.success(f"**Best Model**: {best_model}")
                 st.metric("Best R² Score", f"{best_r2:.3f}")
         
         st.markdown("---")
         
         # System metrics
-        st.markdown("### 📈 System Coverage")
-        st.info(f"✅ **Models**: {len(model_data['models'])} trained")
-        st.info(f"✅ **Counties**: {len(datasets['counties'])} covered")
-        st.info(f"✅ **Properties**: {len(datasets['housing']):,} records")
-        st.info(f"✅ **ZIP Codes**: {datasets['housing']['zip'].nunique():,} areas")
+        st.markdown("###System Coverage")
+        st.info(f"**Models**: {len(model_data['models'])} trained")
+        st.info(f"**Counties**: {len(datasets['counties'])} covered")
+        st.info(f"**Properties**: {len(datasets['housing']):,} records")
+        st.info(f"**ZIP Codes**: {datasets['housing']['zip'].nunique():,} areas")
         
         st.markdown("---")
         
         # Quick data insights
-        st.markdown("### 💰 Market Insights")
+        st.markdown("### Market Insights")
         avg_price = datasets['housing']['valp'].mean()
         median_price = datasets['housing']['valp'].median()
         st.metric("Average Price", f"${avg_price:,.0f}")
@@ -1381,7 +1381,7 @@ def main():
         st.metric("Average Safety Score", f"{avg_safety:.1f}/100")
     
     # Main content with tabs
-    tab1, tab2, tab3 = st.tabs(["🏠 Property Analysis", "📊 Data Explorer", "🔬 Model Insights"])
+    tab1, tab2, tab3 = st.tabs(["Property Analysis", "Data Explorer", "Model Insights"])
     
     with tab1:
         display_property_analysis(datasets, model_data)
@@ -1397,7 +1397,7 @@ def main():
     st.markdown("""
     <div style="text-align: center; color: #666; padding: 1rem;">
         <p><strong>Portable Predictions</strong> - Learning Housing Prices Across Diverse Markets</p>
-        <p>Built with ❤️ using Streamlit, scikit-learn, XGBoost, and SHAP</p>
+        <p>Built with using Streamlit, scikit-learn, XGBoost, and SHAP</p>
     </div>
     """, unsafe_allow_html=True)
 
