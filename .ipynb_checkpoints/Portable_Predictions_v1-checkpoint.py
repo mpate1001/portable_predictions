@@ -191,7 +191,7 @@ def load_datasets():
     ]
     
     if initial_count != len(housing_df):
-        st.info(f"🧹 Filtered {initial_count - len(housing_df):,} invalid housing records")
+        st.info(f"Filtered {initial_count - len(housing_df):,} invalid housing records")
     
     datasets['housing'] = housing_df
     
