@@ -33,30 +33,27 @@ from sklearn.feature_selection import SelectKBest, f_regression
 print("Housing Price Prediction Model Trainer (Database Version)")
 print("=" * 60)
 
-# Database credentials
-DB_CONFIG = {
-    'host': 'ceq2kf3e33g245.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com',
-    'database': 'd9f89h4ju1lleh',
-    'user': 'ufnbfacj9c7u80',
-    'password': 'pa129f8c5adad53ef2c90db10cce0c899f8c7bdad022cca4e85a8729b19aad68d',
-    'port': 5432
-}
-
 def create_db_connection():
-    """Create database connection using SQLAlchemy"""
+    """Create database connection using Streamlit secrets"""
     try:
-        # URL encode the password to handle special characters
-        password = urllib.parse.quote_plus(DB_CONFIG['password'])
-        
-        # Create connection string
-        connection_string = f"postgresql://{DB_CONFIG['user']}:{password}@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['database']}"
-        
-        # Create engine
-        engine = create_engine(connection_string)
-        
+        # Pull config from Streamlit secrets
+        cfg = st.secrets["postgres"]
+
+        # Use URL.create to safely handle special characters in credentials
+        db_url = URL.create(
+            drivername="postgresql+psycopg2",
+            username=cfg["user"],
+            password=cfg["password"],
+            host=cfg["host"],
+            port=cfg.get("port", 5432),
+            database=cfg["database"],
+            query={"sslmode": "require"}  # Enforce TLS
+        )
+
+        engine = create_engine(db_url, pool_pre_ping=True)
         print("Database connection established successfully")
         return engine
-        
+
     except Exception as e:
         print(f"Database connection failed: {e}")
         return None
@@ -66,28 +63,28 @@ def test_db_connection():
     try:
         engine = create_db_connection()
         if engine is None:
+            print("Engine is None. Could not establish connection.")
             return False
-            
-        # Test connection with a simple query - FIXED VERSION
+
         with engine.connect() as conn:
-            # Use text() wrapper for raw SQL queries in newer SQLAlchemy versions
+            # Test basic connectivity
             result = conn.execute(text("SELECT current_database(), current_user;"))
             db_info = result.fetchone()
             print(f"Connected to database: {db_info[0]} as user: {db_info[1]}")
-            
-            # Check available tables - FIXED VERSION
+
+            # List public schema tables
             tables_result = conn.execute(text("""
                 SELECT table_name 
                 FROM information_schema.tables 
                 WHERE table_schema = 'public'
                 ORDER BY table_name;
             """))
-            
+
             tables = [row[0] for row in tables_result.fetchall()]
             print(f"Available tables: {tables}")
-            
+
         return True
-        
+
     except Exception as e:
         print(f"Database connection test failed: {e}")
         return False
