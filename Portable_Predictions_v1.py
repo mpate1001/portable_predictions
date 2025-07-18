@@ -786,7 +786,7 @@ def display_property_analysis(datasets, model_data):
         if selected_county:
             crime_data = get_county_crime_data(selected_county, datasets['crime'])
             
-            st.markdown("###Area Context")
+            st.markdown("### Area Context")
             col_a, col_b = st.columns(2)
             with col_a:
                 st.metric("Safety Score", f"{crime_data['safety_score']:.1f}/100")
@@ -835,7 +835,7 @@ def display_property_analysis(datasets, model_data):
             st.info("Please select a county to view the map.")
     
     with map_info_col2:
-        st.markdown("###Map Features")
+        st.markdown("### Map Features")
         st.markdown("""
         **Auto-Zoom**: Map focuses on selected ZIP code
         
@@ -847,7 +847,7 @@ def display_property_analysis(datasets, model_data):
         - 🔴 High risk (<60 score)
         - 🔵 Selected ZIP code
         
-        **💡 Interactive**: Click ZIP codes for detailed property information
+        **Interactive**: Click ZIP codes for detailed property information
         """)
         
         if selected_county:
@@ -1492,7 +1492,7 @@ def main():
         st.error("Required data not loaded. Please check data files and run the model trainer first.")
         
         # Provide helpful guidance
-        st.markdown("###Setup Instructions")
+        st.markdown("### Setup Instructions")
         st.markdown("""
         **To use this application, you need:**
         
@@ -1528,9 +1528,9 @@ def main():
         
         # Database status
         if DATABASE_AVAILABLE:
-            st.write("🗄️ Database libraries: Available")
+            st.write("Database libraries: Available")
         else:
-            st.write("🗄️ Database libraries: Not installed")
+            st.write("Database libraries: Not installed")
         
         return
     
@@ -1566,7 +1566,7 @@ def main():
         st.markdown("---")
         
         # System metrics
-        st.markdown("###System Coverage")
+        st.markdown("### System Coverage")
         st.info(f"**Models**: {len(model_data['models'])} trained")
         st.info(f"**Counties**: {len(datasets['counties'])} covered")
         st.info(f"**Properties**: {len(datasets['housing']):,} records")
@@ -1586,7 +1586,7 @@ def main():
         
         # Feature availability status
         st.markdown("---")
-        st.markdown("###Features Available")
+        st.markdown("### Features Available")
         
         # Check for optional features
         features_status = []
