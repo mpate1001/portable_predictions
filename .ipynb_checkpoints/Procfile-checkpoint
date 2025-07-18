@@ -1,0 +1,1 @@
+web: streamlit run Portable_Predictions_v1.py --server.port=$PORT --server.enableCORS=false
