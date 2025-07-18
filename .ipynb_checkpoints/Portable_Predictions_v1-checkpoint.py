@@ -1498,7 +1498,7 @@ def main():
         
         1. **Trained Models**: Run one of these first:
            - `python csv_model_trainer.py` (for CSV-based training)
-           - `python database_model_trainer.py` (for database-based training)
+           - `python model_trainer.py` (for database-based training)
         
         2. **Data Files** (if using CSV mode):
            - `acs_housing_vw.csv` 
