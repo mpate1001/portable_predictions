@@ -1,6 +1,6 @@
 # ================================
 # Portable Predictions: Enhanced Housing Investment Streamlit App
-# Complete system with Data Explorer and Model Insights
+# Compatible with both CSV and Database-trained models
 # Authors: Joe Bryant, Mahek Patel, Nathan Deering
 # ================================
 
@@ -26,13 +26,21 @@ from streamlit_folium import folium_static
 # ML Libraries
 from sklearn.metrics import mean_squared_error, r2_score
 
+# Database connection (optional)
+try:
+    import psycopg2
+    from sqlalchemy import create_engine, text
+    import urllib.parse
+    DATABASE_AVAILABLE = True
+except ImportError:
+    DATABASE_AVAILABLE = False
+
 # SHAP for interpretability
 try:
     import shap
     SHAP_AVAILABLE = True
 except ImportError:
     SHAP_AVAILABLE = False
-    st.warning("⚠️ SHAP not installed. Install with: pip install shap")
 
 # Set page config
 st.set_page_config(
@@ -76,66 +84,161 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ================================
+# DATABASE CONNECTION (Optional)
+# ================================
+
+DB_CONFIG = {
+    'host': 'ceq2kf3e33g245.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com',
+    'database': 'd9f89h4ju1lleh',
+    'user': 'ufnbfacj9c7u80',
+    'password': 'pa129f8c5adad53ef2c90db10cce0c899f8c7bdad022cca4e85a8729b19aad68d',
+    'port': 5432
+}
+
+@st.cache_resource
+def create_db_connection():
+    """Create database connection if available"""
+    if not DATABASE_AVAILABLE:
+        return None
+    
+    try:
+        password = urllib.parse.quote_plus(DB_CONFIG['password'])
+        connection_string = f"postgresql://{DB_CONFIG['user']}:{password}@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['database']}"
+        engine = create_engine(connection_string)
+        
+        # Test connection
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        
+        return engine
+    except Exception as e:
+        st.warning(f"Database connection failed: {e}. Using CSV fallback.")
+        return None
+    # ================================
 # DATA LOADING FUNCTIONS
 # ================================
 
 @st.cache_data
 def load_datasets():
-    """Load housing and crime datasets"""
+    """Load housing and crime datasets from database or CSV files"""
     
     datasets = {}
+    data_source = "Unknown"
     
-    try:
-        # Load housing data
-        housing_df = pd.read_csv('acs_housing_vw.csv')
-        
-        # Clean county names
-        housing_df['county_clean'] = housing_df['county'].str.replace(' County', '').str.strip()
-        
-        datasets['housing'] = housing_df
-        st.success(f"Loaded {len(housing_df):,} housing records")
-        
-        # Load crime data
-        crime_df = pd.read_csv('crime_data.csv')
-        
-        # Clean and process crime data
-        crime_df['county_clean'] = crime_df['county'].str.replace(' County', '').str.strip()
-        
-        # Get latest crime data by county
+    # Try database first
+    if DATABASE_AVAILABLE:
+        engine = create_db_connection()
+        if engine:
+            try:
+                st.info("Loading data from database...")
+                
+                # Load housing data
+                housing_query = "SELECT * FROM acs_housing_vw;"
+                housing_df = pd.read_sql_query(housing_query, engine)
+                
+                # Load crime data
+                crime_query = "SELECT * FROM crime_data;"
+                crime_df = pd.read_sql_query(crime_query, engine)
+                
+                data_source = "Database"
+                st.success(f"Loaded from database: {len(housing_df):,} housing records, {len(crime_df):,} crime records")
+                
+            except Exception as e:
+                st.warning(f"Database loading failed: {e}. Trying CSV files...")
+                engine = None
+            finally:
+                if engine:
+                    engine.dispose()
+    
+    # Fallback to CSV files
+    if 'housing_df' not in locals():
+        try:
+            st.info("Loading data from CSV files...")
+            
+            # Load housing data
+            housing_df = pd.read_csv('acs_housing_vw.csv')
+            
+            # Load crime data
+            crime_df = pd.read_csv('crime_data.csv')
+            
+            data_source = "CSV Files"
+            st.success(f"Loaded from CSV: {len(housing_df):,} housing records, {len(crime_df):,} crime records")
+            
+        except Exception as e:
+            st.error(f"Error loading datasets: {e}")
+            return {}
+    
+    # Process housing data
+    housing_df = housing_df.copy()
+    
+    # Clean county names
+    housing_df['county_clean'] = housing_df['county'].str.replace(' County', '').str.strip()
+    
+    # Remove invalid property values
+    initial_count = len(housing_df)
+    housing_df = housing_df[
+        (housing_df['valp'] > 0) & 
+        (housing_df['valp'] < 5000000) &
+        (housing_df['hincp'] >= 0) &
+        (housing_df['zip'].notna()) &
+        (housing_df['county'].notna())
+    ]
+    
+    if initial_count != len(housing_df):
+        st.info(f"🧹 Filtered {initial_count - len(housing_df):,} invalid housing records")
+    
+    datasets['housing'] = housing_df
+    
+    # Process crime data
+    crime_df = crime_df.copy()
+    crime_df['county_clean'] = crime_df['county'].str.replace(' County', '').str.strip()
+    
+    # Handle different column naming conventions
+    crime_columns_map = {
+        'Violent_sum': 'violent_crime',
+        'Property_sum': 'property_crime',
+        'violent_sum': 'violent_crime',
+        'property_sum': 'property_crime'
+    }
+    
+    for old_col, new_col in crime_columns_map.items():
+        if old_col in crime_df.columns:
+            crime_df[new_col] = crime_df[old_col]
+    
+    # Ensure required columns exist
+    if 'violent_crime' not in crime_df.columns:
+        crime_df['violent_crime'] = crime_df.get('violent_rate', 200)
+    if 'property_crime' not in crime_df.columns:
+        crime_df['property_crime'] = crime_df.get('property_rate', 1000)
+    
+    # Get latest crime data by county
+    if 'year' in crime_df.columns:
         latest_crime = crime_df.loc[crime_df.groupby('county_clean')['year'].idxmax()].copy()
-        
-        # Calculate safety metrics
-        latest_crime = latest_crime.rename(columns={
-            'Violent_sum': 'violent_crime',
-            'Property_sum': 'property_crime'
-        })
-        
-        # Calculate safety scores
-        max_violent = latest_crime['violent_crime'].quantile(0.95)
-        max_property = latest_crime['property_crime'].quantile(0.95)
-        
-        latest_crime['violent_rate'] = latest_crime['violent_crime']
-        latest_crime['property_rate'] = latest_crime['property_crime']
-        latest_crime['safety_score'] = 100 - (
-            (latest_crime['violent_crime'] / max(max_violent, 1) * 40) + 
-            (latest_crime['property_crime'] / max(max_property, 1) * 60)
-        ).clip(0, 100)
-        
-        datasets['crime'] = latest_crime
-        st.success(f"Loaded crime data for {len(latest_crime)} counties")
-        
-        # Get available counties and ZIP codes
-        counties = sorted(housing_df['county_clean'].unique())
-        zip_county_map = housing_df[['zip', 'county_clean']].drop_duplicates()
-        
-        datasets['counties'] = counties
-        datasets['zip_county_map'] = zip_county_map
-        
-        return datasets
-        
-    except Exception as e:
-        st.error(f"Error loading datasets: {e}")
-        return {}
+    else:
+        latest_crime = crime_df.drop_duplicates('county_clean').copy()
+    
+    # Calculate safety scores
+    max_violent = latest_crime['violent_crime'].quantile(0.95)
+    max_property = latest_crime['property_crime'].quantile(0.95)
+    
+    latest_crime['violent_rate'] = latest_crime['violent_crime']
+    latest_crime['property_rate'] = latest_crime['property_crime']
+    latest_crime['safety_score'] = 100 - (
+        (latest_crime['violent_crime'] / max(max_violent, 1) * 40) + 
+        (latest_crime['property_crime'] / max(max_property, 1) * 60)
+    ).clip(0, 100)
+    
+    datasets['crime'] = latest_crime
+    
+    # Get available counties and ZIP codes
+    counties = sorted(housing_df['county_clean'].unique())
+    zip_county_map = housing_df[['zip', 'county_clean']].drop_duplicates()
+    
+    datasets['counties'] = counties
+    datasets['zip_county_map'] = zip_county_map
+    datasets['data_source'] = data_source
+    
+    return datasets
 
 @st.cache_resource
 def load_trained_models():
@@ -144,7 +247,7 @@ def load_trained_models():
     models_dir = 'saved_models'
     
     if not os.path.exists(models_dir):
-        st.error("No saved models found! Please run csv_model_trainer.py first.")
+        st.error("No saved models found! Please run the model trainer first.")
         return None
     
     try:
@@ -186,7 +289,13 @@ def load_trained_models():
         with open(metadata_path, 'rb') as f:
             metadata = pickle.load(f)
         
-        st.success(f"Loaded {len(models)} models successfully")
+        # Display data source info
+        if 'database_info' in metadata:
+            data_source = "Database"
+            st.success(f"Loaded {len(models)} database-trained models")
+        else:
+            data_source = "CSV"
+            st.success(f"Loaded {len(models)} CSV-trained models")
         
         return {
             'models': models,
@@ -194,7 +303,8 @@ def load_trained_models():
             'features': features,
             'X_test': X_test,
             'y_test': y_test,
-            'metadata': metadata
+            'metadata': metadata,
+            'model_source': data_source
         }
         
     except Exception as e:
@@ -279,7 +389,7 @@ def calculate_investment_score(predictions, purchase_price, crime_data, market_c
 def generate_shap_analysis(_models, _X_test, _features):
     """Generate SHAP analysis for interpretability"""
     
-    if not SHAP_AVAILABLE or 'XGBoost' not in _models:
+    if not SHAP_AVAILABLE or 'XGBoost' not in _models or _X_test is None:
         return {}
     
     try:
@@ -320,18 +430,22 @@ def create_folium_map(county, zip_code, housing_data, crime_data):
     if zip_code and zip_code != "No ZIP codes available":
         # Focus on selected ZIP code
         zip_data = county_housing[county_housing['zip'] == int(zip_code)]
-        if len(zip_data) > 0:
+        if len(zip_data) > 0 and 'latitude' in zip_data.columns and 'longitude' in zip_data.columns:
             center_lat = zip_data['latitude'].median()
             center_lon = zip_data['longitude'].median()
-            zoom_start = 13  # Closer zoom for ZIP code focus
+            zoom_start = 13
         else:
             # Fallback to county center
-            center_lat = county_housing['latitude'].median()
-            center_lon = county_housing['longitude'].median()
-            zoom_start = 10
+            if len(county_housing) > 0 and 'latitude' in county_housing.columns:
+                center_lat = county_housing['latitude'].median()
+                center_lon = county_housing['longitude'].median()
+                zoom_start = 10
+            else:
+                center_lat, center_lon = 36.7783, -119.4179
+                zoom_start = 6
     else:
         # County-wide view
-        if len(county_housing) > 0:
+        if len(county_housing) > 0 and 'latitude' in county_housing.columns:
             center_lat = county_housing['latitude'].median()
             center_lon = county_housing['longitude'].median()
             zoom_start = 10
@@ -354,99 +468,117 @@ def create_folium_map(county, zip_code, housing_data, crime_data):
     else:
         color = 'red'
     
-    # Group data by ZIP code for cleaner display
-    zip_groups = county_housing.groupby('zip').agg({
-        'latitude': 'median',
-        'longitude': 'median',
-        'primary_city': 'first',
-        'valp': ['mean', 'count']
-    }).reset_index()
-    
-    # Flatten column names
-    zip_groups.columns = ['zip', 'latitude', 'longitude', 'primary_city', 'avg_price', 'property_count']
-    
-    # Add ZIP code markers with labels
-    for _, row in zip_groups.iterrows():
-        if pd.notna(row['latitude']) and pd.notna(row['longitude']):
-            
-            # Highlight selected ZIP code
-            if zip_code and str(row['zip']) == str(zip_code):
-                marker_color = 'blue'
-                marker_size = 15
-                icon_color = 'white'
-                popup_prefix = "SELECTED ZIP: "
-            else:
-                marker_color = color
-                marker_size = 10
-                icon_color = 'white'
-                popup_prefix = "ZIP: "
-            
-            # Create popup with detailed information
-            popup_text = f"""
-            {popup_prefix}{row['zip']}<br>
-            City: {row['primary_city']}<br>
-            Properties: {row['property_count']} listings<br>
-            Avg Price: ${row['avg_price']:,.0f}<br>
-            Safety Score: {safety_score:.1f}/100<br>
-            Violent Crime: {county_crime['violent_rate']:.0f}<br>
-            Property Crime: {county_crime['property_rate']:.0f}
-            """
-            
-            # Add marker with ZIP code as icon
-            folium.Marker(
-                location=[row['latitude'], row['longitude']],
-                popup=folium.Popup(popup_text, max_width=300),
-                tooltip=f"ZIP: {row['zip']} | {row['primary_city']}",
-                icon=folium.DivIcon(
-                    html=f"""
-                    <div style="
-                        background-color: {marker_color};
-                        border: 2px solid white;
-                        border-radius: 8px;
-                        color: {icon_color};
-                        font-size: 12px;
-                        font-weight: bold;
-                        text-align: center;
-                        padding: 4px 6px;
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-                        min-width: 50px;
-                    ">
-                        {row['zip']}
-                    </div>
-                    """,
-                    icon_size=(60, 30),
-                    icon_anchor=(30, 15)
-                )
-            ).add_to(m)
-    
-    # Add county boundary indicator (optional)
-    if len(county_housing) > 0:
-        # Calculate county bounds
-        min_lat, max_lat = county_housing['latitude'].min(), county_housing['latitude'].max()
-        min_lon, max_lon = county_housing['longitude'].min(), county_housing['longitude'].max()
+    # Check if we have coordinate data
+    if 'latitude' in county_housing.columns and 'longitude' in county_housing.columns:
+        # Group data by ZIP code for cleaner display
+        zip_groups = county_housing.groupby('zip').agg({
+            'latitude': 'median',
+            'longitude': 'median',
+            'primary_city': 'first' if 'primary_city' in county_housing.columns else lambda x: 'Unknown',
+            'valp': ['mean', 'count']
+        }).reset_index()
         
-        # Add county info box
-        county_info = f"""
+        # Flatten column names
+        zip_groups.columns = ['zip', 'latitude', 'longitude', 'primary_city', 'avg_price', 'property_count']
+        
+        # Add ZIP code markers with labels
+        for _, row in zip_groups.iterrows():
+            if pd.notna(row['latitude']) and pd.notna(row['longitude']):
+                
+                # Highlight selected ZIP code
+                if zip_code and str(row['zip']) == str(zip_code):
+                    marker_color = 'blue'
+                    marker_size = 15
+                    icon_color = 'white'
+                    popup_prefix = "SELECTED ZIP: "
+                else:
+                    marker_color = color
+                    marker_size = 10
+                    icon_color = 'white'
+                    popup_prefix = "ZIP: "
+                
+                # Create popup with detailed information
+                popup_text = f"""
+                {popup_prefix}{row['zip']}<br>
+                City: {row['primary_city']}<br>
+                Properties: {row['property_count']} listings<br>
+                Avg Price: ${row['avg_price']:,.0f}<br>
+                Safety Score: {safety_score:.1f}/100<br>
+                Violent Crime: {county_crime['violent_rate']:.0f}<br>
+                Property Crime: {county_crime['property_rate']:.0f}
+                """
+                
+                # Add marker with ZIP code as icon
+                folium.Marker(
+                    location=[row['latitude'], row['longitude']],
+                    popup=folium.Popup(popup_text, max_width=300),
+                    tooltip=f"ZIP: {row['zip']} | {row['primary_city']}",
+                    icon=folium.DivIcon(
+                        html=f"""
+                        <div style="
+                            background-color: {marker_color};
+                            border: 2px solid white;
+                            border-radius: 8px;
+                            color: {icon_color};
+                            font-size: 12px;
+                            font-weight: bold;
+                            text-align: center;
+                            padding: 4px 6px;
+                            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                            min-width: 50px;
+                        ">
+                            {row['zip']}
+                        </div>
+                        """,
+                        icon_size=(60, 30),
+                        icon_anchor=(30, 15)
+                    )
+                ).add_to(m)
+    else:
+        # Add text overlay if no coordinates
+        no_coords_html = """
         <div style="
             position: fixed;
-            top: 10px;
-            left: 50px;
-            background: white;
-            border: 2px solid {color};
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255,255,255,0.9);
+            border: 2px solid #ccc;
             border-radius: 8px;
-            padding: 10px;
-            font-size: 14px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            padding: 20px;
+            text-align: center;
+            font-size: 16px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
             z-index: 1000;
         ">
-            <strong>📍 {county} County</strong><br>
-            Safety Score: {safety_score:.1f}/100<br>
-            ZIP Codes: {len(zip_groups)} areas<br>
-            Properties: {len(county_housing):,} listings
+            <strong>Map View Not Available</strong><br>
+            No coordinate data for this county.<br>
+            Please use the analysis tools below.
         </div>
         """
-        
-        m.get_root().html.add_child(folium.Element(county_info))
+        m.get_root().html.add_child(folium.Element(no_coords_html))
+    
+    # Add county info box
+    county_info = f"""
+    <div style="
+        position: fixed;
+        top: 10px;
+        left: 50px;
+        background: white;
+        border: 2px solid {color};
+        border-radius: 8px;
+        padding: 10px;
+        font-size: 14px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        z-index: 1000;
+    ">
+        <strong>{county} County</strong><br>
+        🛡️ Safety Score: {safety_score:.1f}/100<br>
+        Properties: {len(county_housing):,} listings
+    </div>
+    """
+    
+    m.get_root().html.add_child(folium.Element(county_info))
     
     # Add legend
     legend_html = f"""
@@ -478,7 +610,7 @@ def create_folium_map(county, zip_code, housing_data, crime_data):
 def display_model_diagnostics(models, X_test, y_test):
     """Display comprehensive model diagnostic plots"""
     
-    if y_test is None:
+    if y_test is None or X_test is None:
         st.warning("Test data not available for diagnostics")
         return
     
@@ -528,11 +660,11 @@ def display_model_diagnostics(models, X_test, y_test):
 def display_shap_analysis(shap_results, user_input, features):
     """Display SHAP interpretability plots"""
     
-    if not shap_results:
+    if not shap_results or not SHAP_AVAILABLE:
         st.warning("SHAP analysis not available")
         return
     
-    st.header("🔍 Model Interpretability (SHAP)")
+    st.header("Model Interpretability (SHAP)")
     
     # Feature importance
     importance_df = shap_results['feature_importance']
@@ -574,7 +706,7 @@ def display_shap_analysis(shap_results, user_input, features):
             st.pyplot(fig_dep, bbox_inches='tight')
 
 # ================================
-# MAIN SECTIONS
+# MAIN SECTIONS - PART 1
 # ================================
 
 def display_property_analysis(datasets, model_data):
@@ -584,7 +716,7 @@ def display_property_analysis(datasets, model_data):
     col1, col2 = st.columns([3, 2])
     
     with col1:
-        st.header("Property Analysis")
+        st.header("🏡 Property Analysis")
         
         # Location selection
         st.subheader("Location")
@@ -612,11 +744,10 @@ def display_property_analysis(datasets, model_data):
             if len(zip_data) > 0:
                 avg_price = zip_data['valp'].mean()
                 property_count = len(zip_data)
-                primary_city = zip_data['primary_city'].iloc[0]
+                primary_city = zip_data['primary_city'].iloc[0] if 'primary_city' in zip_data.columns else 'Unknown'
                 
                 st.info(f"**ZIP {selected_zip}** | {primary_city} | {property_count} properties | Avg: ${avg_price:,.0f}")
-            else:
-                st.warning(f"No data available for ZIP {selected_zip}")
+           
         
         # Property characteristics
         st.subheader("Property Details")
@@ -642,20 +773,20 @@ def display_property_analysis(datasets, model_data):
         )
     
     with col2:
-        st.header("Analysis Options")
+        st.header("🎯 Analysis Options")
         
         analysis_type = st.selectbox(
             "Analysis Type",
             ["Full Investment Analysis", "Model Comparison", "SHAP Interpretability", "Model Diagnostics"]
         )
         
-        run_analysis = st.button("Run Analysis", type="primary", use_container_width=True)
+        run_analysis = st.button("🔮 Run Analysis", type="primary", use_container_width=True)
         
         # Display county crime info
         if selected_county:
             crime_data = get_county_crime_data(selected_county, datasets['crime'])
             
-            st.markdown("###Area Context")
+            st.markdown("### 📈 Area Context")
             col_a, col_b = st.columns(2)
             with col_a:
                 st.metric("Safety Score", f"{crime_data['safety_score']:.1f}/100")
@@ -706,11 +837,11 @@ def display_property_analysis(datasets, model_data):
     with map_info_col2:
         st.markdown("### 🎯 Map Features")
         st.markdown("""
-        **🔍 Auto-Zoom**: Map focuses on selected ZIP code
+        **Auto-Zoom**: Map focuses on selected ZIP code
         
-        **📍 ZIP Labels**: ZIP codes displayed as text markers
+        **ZIP Labels**: ZIP codes displayed as text markers
         
-        **🎨 Color Coding**:
+        **Color Coding**:
         - 🟢 Safe areas (80+ score)
         - 🟡 Moderate (60-79 score)  
         - 🔴 High risk (<60 score)
@@ -722,7 +853,7 @@ def display_property_analysis(datasets, model_data):
         if selected_county:
             crime_data = get_county_crime_data(selected_county, datasets['crime'])
             st.markdown("---")
-            st.markdown("###County Safety")
+            st.markdown("### County Safety")
             st.metric("Safety Score", f"{crime_data['safety_score']:.1f}/100")
             st.metric("Violent Crime", f"{crime_data['violent_rate']:.0f}")
             st.metric("Property Crime", f"{crime_data['property_rate']:.0f}")
@@ -784,7 +915,7 @@ def display_property_analysis(datasets, model_data):
             display_shap_analysis(shap_results, input_df, model_data['features'])
         elif analysis_type == "Model Diagnostics":
             display_model_diagnostics(model_data['models'], model_data['X_test'], model_data['y_test'])
-
+            
 def display_data_explorer(datasets):
     """Comprehensive data exploration dashboard"""
     
@@ -803,10 +934,20 @@ def display_data_explorer(datasets):
         avg_price = datasets['housing']['valp'].mean()
         st.metric("Avg Property Value", f"${avg_price:,.0f}")
     
+    # Data source indicator
+    st.info(f"**Data Source**: {datasets.get('data_source', 'Unknown')}")
+    
     # Geographic coverage
     st.subheader("Geographic Coverage")
-    coord_coverage = datasets['housing'].dropna(subset=['latitude', 'longitude']).shape[0]
-    coverage_pct = (coord_coverage / len(datasets['housing'])) * 100
+    
+    # Check if coordinate data exists
+    has_coordinates = 'latitude' in datasets['housing'].columns and 'longitude' in datasets['housing'].columns
+    if has_coordinates:
+        coord_coverage = datasets['housing'].dropna(subset=['latitude', 'longitude']).shape[0]
+        coverage_pct = (coord_coverage / len(datasets['housing'])) * 100
+    else:
+        coord_coverage = 0
+        coverage_pct = 0
     
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -949,12 +1090,12 @@ def display_data_explorer(datasets):
                 len(datasets['housing']),
                 datasets['housing']['valp'].notna().sum(),
                 datasets['housing']['hincp'].notna().sum(),
-                datasets['housing'][['latitude', 'longitude']].dropna().shape[0],
+                coord_coverage,
                 len(datasets['crime'])
             ]
         })
         st.dataframe(coverage_info, use_container_width=True)
-
+        
 def display_model_insights(model_data):
     """Enhanced model performance and insights"""
     
@@ -978,6 +1119,14 @@ def display_model_insights(model_data):
     with col4:
         data_summary = metadata.get('data_summary', {})
         st.metric("Training Samples", f"{data_summary.get('n_samples', 'N/A'):,}")
+    
+    # Display model source
+    model_source = model_data.get('model_source', 'Unknown')
+    if 'database_info' in metadata:
+        db_info = metadata['database_info']
+        st.info(f"**Models trained from Database**: {db_info.get('database', 'Unknown')} on {db_info.get('host', 'Unknown')}")
+    else:
+        st.info(f"**Models trained from**: {model_source}")
     
     # Feature importance (if available)
     st.subheader("Feature Importance Analysis")
@@ -1158,7 +1307,6 @@ def display_model_insights(model_data):
                 )
                 
                 st.plotly_chart(fig_scatter, use_container_width=True)
-
 def display_full_investment_analysis(predictions, purchase_price, crime_data, county):
     """Display comprehensive investment analysis"""
     
@@ -1336,16 +1484,72 @@ def main():
     st.markdown('<div class="sub-header">Advanced Housing Investment Analysis with ML & Crime Data Integration</div>', unsafe_allow_html=True)
     
     # Load data and models
-    datasets = load_datasets()
-    model_data = load_trained_models()
+    with st.spinner("Loading datasets and models..."):
+        datasets = load_datasets()
+        model_data = load_trained_models()
     
     if not datasets or not model_data:
-        st.error("Required data not loaded. Please check data files and run csv_model_trainer.py first.")
+        st.error("Required data not loaded. Please check data files and run the model trainer first.")
+        
+        # Provide helpful guidance
+        st.markdown("###Setup Instructions")
+        st.markdown("""
+        **To use this application, you need:**
+        
+        1. **Trained Models**: Run one of these first:
+           - `python csv_model_trainer.py` (for CSV-based training)
+           - `python database_model_trainer.py` (for database-based training)
+        
+        2. **Data Files** (if using CSV mode):
+           - `acs_housing_vw.csv` 
+           - `crime_data.csv`
+        
+        3. **Database Access** (if using database mode):
+           - Install: `pip install psycopg2-binary sqlalchemy`
+           - Ensure database connection is working
+        
+        **Current Status:**
+        """)
+        
+        # Check what's available
+        if os.path.exists('saved_models'):
+            st.info("Models directory found")
+            models_found = [f for f in os.listdir('saved_models') if f.endswith('.pkl')]
+            st.write(f"📁 Model files: {len(models_found)} found")
+        else:
+            st.warning("No models directory found - please run model trainer first")
+        
+        # Check for CSV files
+        csv_files = ['acs_housing_vw.csv', 'crime_data.csv']
+        csv_status = [f"{'✅' if os.path.exists(f) else '❌'} {f}" for f in csv_files]
+        st.write("CSV Files:")
+        for status in csv_status:
+            st.write(f"   {status}")
+        
+        # Database status
+        if DATABASE_AVAILABLE:
+            st.write("🗄️ Database libraries: Available")
+        else:
+            st.write("🗄️ Database libraries: Not installed")
+        
         return
     
     # Sidebar - Model info and performance
     with st.sidebar:
         st.header("System Dashboard")
+        
+        # Display data and model source
+        data_source = datasets.get('data_source', 'Unknown')
+        model_source = model_data.get('model_source', 'Unknown')
+        
+        st.markdown("### Data Pipeline Status")
+        st.success(f"**Data Source**: {data_source}")
+        if 'database_info' in model_data['metadata']:
+            db_info = model_data['metadata']['database_info']
+            st.success(f"**Models**: Database-trained")
+            st.caption(f"DB: {db_info.get('database', 'Unknown')}")
+        else:
+            st.success(f"**Models**: {model_source}-trained")
         
         if model_data['metadata']:
             trained_at = model_data['metadata'].get('trained_at', 'Unknown')
@@ -1379,9 +1583,40 @@ def main():
         
         avg_safety = datasets['crime']['safety_score'].mean()
         st.metric("Average Safety Score", f"{avg_safety:.1f}/100")
+        
+        # Feature availability status
+        st.markdown("---")
+        st.markdown("###Features Available")
+        
+        # Check for optional features
+        features_status = []
+        
+        # SHAP
+        if SHAP_AVAILABLE:
+            features_status.append("SHAP Interpretability")
+        else:
+            features_status.append("SHAP (install: pip install shap)")
+        
+        # Database
+        if DATABASE_AVAILABLE:
+            features_status.append("Database Connection")
+        else:
+            features_status.append("Database (install: pip install psycopg2-binary)")
+        
+        # Coordinates for mapping
+        has_coords = 'latitude' in datasets['housing'].columns and 'longitude' in datasets['housing'].columns
+        if has_coords:
+            coord_coverage = datasets['housing'][['latitude', 'longitude']].dropna().shape[0]
+            coverage_pct = (coord_coverage / len(datasets['housing'])) * 100
+            features_status.append(f"Interactive Maps ({coverage_pct:.0f}% coverage)")
+        else:
+            features_status.append("Limited Mapping (no coordinates)")
+        
+        for status in features_status:
+            st.caption(status)
     
     # Main content with tabs
-    tab1, tab2, tab3 = st.tabs(["Property Analysis", "Data Explorer", "Model Insights"])
+    tab1, tab2, tab3 = st.tabs(["Property Analysis", "Data Explorer", "🔬 Model Insights"])
     
     with tab1:
         display_property_analysis(datasets, model_data)
@@ -1392,14 +1627,51 @@ def main():
     with tab3:
         display_model_insights(model_data)
     
-    # Footer
+    # Footer with system information
     st.markdown("---")
-    st.markdown("""
-    <div style="text-align: center; color: #666; padding: 1rem;">
-        <p><strong>Portable Predictions</strong> - Learning Housing Prices Across Diverse Markets</p>
-        <p>Built with using Streamlit, scikit-learn, XGBoost, and SHAP</p>
-    </div>
-    """, unsafe_allow_html=True)
+    
+    # System information in expandable section
+    with st.expander("System Information & Credits"):
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.markdown("**🔧 Technical Stack**")
+            st.markdown("""
+            - **ML**: scikit-learn, XGBoost
+            - **Data**: pandas, numpy  
+            - **Viz**: plotly, folium
+            - **UI**: Streamlit
+            - **DB**: PostgreSQL, SQLAlchemy
+            """)
+        
+        with col2:
+            st.markdown("**Model Features**")
+            st.markdown(f"""
+            - **Features**: {len(model_data['features'])} inputs
+            - **Models**: {len(model_data['models'])} algorithms
+            - **Data**: {datasets.get('data_source', 'Unknown')} source
+            - **Counties**: {len(datasets['counties'])} areas
+            - **Properties**: {len(datasets['housing']):,} records
+            """)
+        
+        with col3:
+            st.markdown("**🎯 Analysis Types**")
+            st.markdown("""
+            - **Investment Analysis**: Score & recommendation
+            - **Model Comparison**: Performance metrics
+            - **Interpretability**: SHAP analysis
+            - **Diagnostics**: Model validation
+            - **Market Explorer**: Data insights
+            """)
+        
+        st.markdown("---")
+        st.markdown("""
+        <div style="text-align: center; color: #666; padding: 1rem;">
+            <p><strong>Portable Predictions</strong> - Learning Housing Prices Across Diverse Markets</p>
+            <p>Built by Joe Bryant, Mahek Patel, Nathan Deering</p>
+            <p><em>Advanced ML-powered real estate investment analysis with integrated crime data</em></p>
+        </div>
+        """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()

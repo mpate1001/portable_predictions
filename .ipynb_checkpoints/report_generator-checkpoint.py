@@ -44,7 +44,7 @@ class HousingPredictionReport:
         
     def load_data(self):
         """Load all necessary data for report generation"""
-        print("📊 Loading data for report generation...")
+        print("Loading data for report generation...")
         
         try:
             # Load datasets
@@ -80,10 +80,10 @@ class HousingPredictionReport:
             self.X_test = joblib.load(os.path.join(models_dir, 'X_test.pkl'))
             self.y_test = joblib.load(os.path.join(models_dir, 'y_test.pkl'))
             
-            print("✅ All data loaded successfully")
+            print("All data loaded successfully")
             
         except Exception as e:
-            print(f"❌ Error loading data: {e}")
+            print(f"Error loading data: {e}")
     
     def generate_data_overview_report(self):
         """Generate comprehensive data overview and quality report"""
@@ -145,7 +145,7 @@ class HousingPredictionReport:
     def generate_methodology_report(self):
         """Generate detailed methodology explanation"""
         
-        print("🔬 Generating methodology report...")
+        print("Generating methodology report...")
         
         methodology = {
             'data_sources': {
@@ -192,7 +192,7 @@ class HousingPredictionReport:
     def generate_model_performance_report(self):
         """Generate comprehensive model performance analysis"""
         
-        print("🏆 Generating model performance report...")
+        print("Generating model performance report...")
         
         # Get performance metrics from metadata
         performance_metrics = self.metadata['model_performance']
@@ -252,7 +252,7 @@ class HousingPredictionReport:
     def generate_validation_report(self):
         """Generate model validation and diagnostic report"""
         
-        print("✅ Generating validation report...")
+        print("Generating validation report...")
         
         # Use best performing model for detailed validation
         best_model_name = 'XGBoost'  # Based on typical performance
@@ -312,13 +312,13 @@ class HousingPredictionReport:
             return validation_summary
         
         else:
-            print("❌ Best model not available for validation")
+            print("Best model not available for validation")
             return {}
     
     def generate_feature_importance_report(self):
         """Generate feature importance and SHAP analysis report"""
         
-        print("🔍 Generating feature importance report...")
+        print("Generating feature importance report...")
         
         feature_analysis = {}
         
@@ -379,7 +379,7 @@ class HousingPredictionReport:
     def generate_investment_methodology_report(self):
         """Generate report on investment scoring methodology"""
         
-        print("💰 Generating investment methodology report...")
+        print("Generating investment methodology report...")
         
         investment_methodology = {
             'scoring_components': {
@@ -423,7 +423,7 @@ class HousingPredictionReport:
     def save_figures(self):
         """Generate and save key figures for the report"""
         
-        print("📊 Generating figures...")
+        print("Generating figures...")
         
         # Set style
         plt.style.use('default')
@@ -533,12 +533,12 @@ class HousingPredictionReport:
             plt.savefig('reports/residuals_analysis.png', dpi=300, bbox_inches='tight')
             plt.close()
         
-        print("✅ Figures saved to reports/ directory")
+        print("Figures saved to reports/ directory")
     
     def generate_html_report(self):
         """Generate comprehensive HTML report"""
         
-        print("📄 Generating HTML report...")
+        print("Generating HTML report...")
         
         html_content = f"""
         <!DOCTYPE html>
@@ -564,11 +564,11 @@ class HousingPredictionReport:
         </head>
         <body>
         
-        <h1>🏠 Housing Price Prediction Model Report</h1>
+        <h1>Housing Price Prediction Model Report</h1>
         <p><strong>Generated:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
         <p><strong>Authors:</strong> Joe Bryant, Mahek Patel, Nathan Deering</p>
         
-        <h2>📋 Executive Summary</h2>
+        <h2>Executive Summary</h2>
         <div class="metric">
             <p>This report documents the development, validation, and performance of machine learning models 
             for housing price prediction across diverse markets. The system integrates housing characteristics 
@@ -580,7 +580,7 @@ class HousingPredictionReport:
         if 'data_overview' in self.report_data:
             data = self.report_data['data_overview']['overview']
             html_content += f"""
-            <h2>📊 Data Overview</h2>
+            <h2>Data Overview</h2>
             <div class="metric">
                 <p><strong>Dataset Size:</strong> {data['total_properties']:,} properties</p>
                 <p><strong>Geographic Coverage:</strong> {data['total_counties']} counties, {data['total_zip_codes']:,} ZIP codes</p>
@@ -594,7 +594,7 @@ class HousingPredictionReport:
         if 'methodology' in self.report_data:
             method = self.report_data['methodology']
             html_content += f"""
-            <h2>🔬 Methodology</h2>
+            <h2>Methodology</h2>
             
             <h3>Data Sources</h3>
             <ul>
@@ -620,7 +620,7 @@ class HousingPredictionReport:
         if 'performance' in self.report_data:
             perf = self.report_data['performance']
             html_content += f"""
-            <h2>🏆 Model Performance</h2>
+            <h2>Model Performance</h2>
             <p class="success">Best Performing Model: {perf['best_model']}</p>
             
             <table>
@@ -643,7 +643,7 @@ class HousingPredictionReport:
         if 'validation' in self.report_data:
             val = self.report_data['validation']
             html_content += f"""
-            <h2>✅ Model Validation</h2>
+            <h2>Model Validation</h2>
             <div class="metric">
                 <p><strong>Validation Model:</strong> {val['model_used']}</p>
                 <p><strong>Sample Size:</strong> {val['sample_size']:,} properties</p>
@@ -660,7 +660,7 @@ class HousingPredictionReport:
             feat = self.report_data['feature_analysis']
             if 'xgboost_importance' in feat:
                 html_content += """
-                <h2>🔍 Feature Importance Analysis</h2>
+                <h2>Feature Importance Analysis</h2>
                 <p>Top 5 most important features for price prediction:</p>
                 <ol>
                 """
@@ -674,7 +674,7 @@ class HousingPredictionReport:
         if 'investment_methodology' in self.report_data:
             inv = self.report_data['investment_methodology']
             html_content += f"""
-            <h2>💰 Investment Scoring Methodology</h2>
+            <h2>Investment Scoring Methodology</h2>
             <p>Our investment recommendation system combines four key components:</p>
             
             <table>
@@ -694,7 +694,7 @@ class HousingPredictionReport:
         
         # Add figures
         html_content += """
-        <h2>📊 Key Visualizations</h2>
+        <h2>Key Visualizations</h2>
         
         <h3>Model Performance Comparison</h3>
         <img src="model_performance_comparison.png" alt="Model Performance Comparison">
@@ -711,7 +711,7 @@ class HousingPredictionReport:
         
         # Add conclusions
         html_content += """
-        <h2>🎯 Conclusions and Recommendations</h2>
+        <h2>Conclusions and Recommendations</h2>
         <div class="metric">
             <h3>Model Performance</h3>
             <ul>
@@ -743,7 +743,7 @@ class HousingPredictionReport:
             </ul>
         </div>
         
-        <h2>📚 Technical Specifications</h2>
+        <h2>Technical Specifications</h2>
         <div class="code">
         Programming Language: Python 3.8+
         Key Libraries: scikit-learn, XGBoost, pandas, NumPy
@@ -773,12 +773,12 @@ class HousingPredictionReport:
         with open('reports/housing_prediction_report.html', 'w', encoding='utf-8') as f:
             f.write(html_content)
         
-        print("✅ HTML report saved to reports/housing_prediction_report.html")
+        print("HTML report saved to reports/housing_prediction_report.html")
     
     def generate_comprehensive_report(self):
         """Generate the complete report with all sections"""
         
-        print("🚀 Generating comprehensive housing prediction report...")
+        print("Generating comprehensive housing prediction report...")
         print("=" * 60)
         
         # Create reports directory
@@ -804,15 +804,15 @@ class HousingPredictionReport:
             self.generate_executive_summary()
             
             print("=" * 60)
-            print("✅ REPORT GENERATION COMPLETE!")
-            print(f"📄 HTML Report: reports/housing_prediction_report.html")
-            print(f"📄 Text Report: reports/housing_prediction_methodology_report.txt")
-            print(f"📊 Figures: reports/*.png")
-            print(f"📋 Summary: reports/executive_summary.txt")
+            print("REPORT GENERATION COMPLETE!")
+            print(f"HTML Report: reports/housing_prediction_report.html")
+            print(f"Text Report: reports/housing_prediction_methodology_report.txt")
+            print(f"Figures: reports/*.png")
+            print(f"Summary: reports/executive_summary.txt")
             print("=" * 60)
             
         except Exception as e:
-            print(f"❌ Error generating report: {e}")
+            print(f"Error generating report: {e}")
     
     def generate_executive_summary(self):
         """Generate executive summary text file"""
@@ -896,7 +896,7 @@ For detailed technical analysis, refer to the complete HTML report.
     def generate_text_report(self):
         """Generate comprehensive text-based report"""
         
-        print("📄 Generating comprehensive text report...")
+        print("Generating comprehensive text report...")
         
         report_text = f"""
 ================================================================================
@@ -1544,12 +1544,12 @@ Report Generation Completed: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
         with open('reports/housing_prediction_methodology_report.txt', 'w', encoding='utf-8') as f:
             f.write(report_text)
         
-        print("✅ Comprehensive text report saved to reports/housing_prediction_methodology_report.txt")
+        print("Comprehensive text report saved to reports/housing_prediction_methodology_report.txt")
         
         return report_text
     """Main function to generate the complete report"""
     
-    print("🏠 HOUSING PREDICTION MODEL REPORT GENERATOR")
+    print("HOUSING PREDICTION MODEL REPORT GENERATOR")
     print("=" * 60)
     print("This tool generates a comprehensive methodology and validation report")
     print("for the housing price prediction models.")
@@ -1567,7 +1567,7 @@ Report Generation Completed: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
     missing_files = [f for f in required_files if not os.path.exists(f)]
     
     if missing_files:
-        print("❌ Missing required files:")
+        print("Missing required files:")
         for file in missing_files:
             print(f"   - {file}")
         print("\nPlease ensure you have:")
@@ -1575,7 +1575,7 @@ Report Generation Completed: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
         print("2. Trained models (run csv_model_trainer.py first)")
         # Removed invalid 'return' statement
     
-    print("✅ All required files found")
+    print("All required files found")
     print()
     
     # Generate report
@@ -1598,7 +1598,7 @@ def main():
     missing_files = [f for f in required_files if not os.path.exists(f)]
     
     if missing_files:
-        print("❌ Missing required files:")
+        print("Missing required files:")
         for file in missing_files:
             print(f"   - {file}")
         print("\nPlease ensure you have:")
@@ -1606,20 +1606,20 @@ def main():
         print("2. Trained models (run csv_model_trainer.py first)")
         return
     
-    print("✅ All required files found")
+    print("All required files found")
     print()
     
     # Generate report
     reporter = HousingPredictionReport()
     reporter.generate_comprehensive_report()
     
-    print("\n🎉 Report generation completed successfully!")
+    print("\nReport generation completed successfully!")
     print("\nGenerated files:")
-    print("📄 reports/housing_prediction_report.html - Complete methodology report")
-    print("📋 reports/executive_summary.txt - Executive summary")
-    print("📊 reports/*.png - Key visualizations")
+    print("reports/housing_prediction_report.html - Complete methodology report")
+    print("reports/executive_summary.txt - Executive summary")
+    print("reports/*.png - Key visualizations")
     print()
-    print("💡 Open the HTML report in your browser for the complete analysis!")
+    print("Open the HTML report in your browser for the complete analysis!")
 
 if __name__ == "__main__":
     main()
