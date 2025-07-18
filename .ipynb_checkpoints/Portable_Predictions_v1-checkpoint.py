@@ -4,38 +4,44 @@
 # Authors: Joe Bryant, Mahek Patel, Nathan Deering
 # ================================
 
+# Core Libraries
+import os
+import pickle
+import joblib
+import warnings
+from datetime import datetime
+
 import numpy as np
 import pandas as pd
 import streamlit as st
-import pickle
-import joblib
-import os
-from datetime import datetime
+
+# Plotting Libraries
 import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import warnings
-warnings.filterwarnings('ignore')
 
-# Folium for mapping
+# Streamlit Mapping
 import folium
 from streamlit_folium import folium_static
 
-# ML Libraries
+# Machine Learning Evaluation
 from sklearn.metrics import mean_squared_error, r2_score
 
-# Database connection (optional)
+# Suppress warnings
+warnings.filterwarnings("ignore")
+
+# Database Support
 try:
     import psycopg2
     from sqlalchemy import create_engine, text
-    import urllib.parse
+    from sqlalchemy.engine import URL  # Required if using SQLAlchemy's URL.create()
     DATABASE_AVAILABLE = True
 except ImportError:
     DATABASE_AVAILABLE = False
 
-# SHAP for interpretability
+# SHAP Support
 try:
     import shap
     SHAP_AVAILABLE = True

@@ -1,34 +1,40 @@
 # ================================
 # FIXED DATABASE CONNECTION SETUP
 # ================================
-
-import numpy as np
-import pandas as pd
+# Standard Library
+import os
 import pickle
 import joblib
-import os
 from datetime import datetime
+import warnings
+
+# Data Handling
+import numpy as np
+import pandas as pd
+
+# Visualization
 import matplotlib.pyplot as plt
 import seaborn as sns
-import warnings
-warnings.filterwarnings('ignore')
 
-# Database connection
+# Suppress Warnings
+warnings.filterwarnings("ignore")
+
+# Database Connection
 import psycopg2
 from sqlalchemy import create_engine, text
+from sqlalchemy.engine import URL  # Needed for secure URL creation
 import urllib.parse
 
-# Core ML Libraries
+# Machine Learning - Preprocessing & Modeling
 from sklearn.model_selection import train_test_split, cross_val_score, KFold
-from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.preprocessing import StandardScaler, LabelEncoder, PolynomialFeatures
 from sklearn.linear_model import LinearRegression, Ridge
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
-import xgboost as xgb
-
-# For advanced feature engineering
-from sklearn.preprocessing import PolynomialFeatures
 from sklearn.feature_selection import SelectKBest, f_regression
+from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
+
+# XGBoost
+import xgboost as xgb
 
 print("Housing Price Prediction Model Trainer (Database Version)")
 print("=" * 60)
