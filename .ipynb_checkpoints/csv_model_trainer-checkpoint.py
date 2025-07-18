@@ -27,7 +27,7 @@ import xgboost as xgb
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.feature_selection import SelectKBest, f_regression
 
-print("🏠 Housing Price Prediction Model Trainer")
+print("Housing Price Prediction Model Trainer")
 print("=" * 50)
 
 # ================================
@@ -37,22 +37,22 @@ print("=" * 50)
 def load_and_preprocess_data():
     """Load and preprocess housing and crime data"""
     
-    print("📊 Loading datasets...")
+    print("Loading datasets...")
     
     # Load housing data
     try:
         housing_df = pd.read_csv('acs_housing_vw.csv')
-        print(f"✅ Loaded {len(housing_df):,} housing records")
+        print(f"Loaded {len(housing_df):,} housing records")
     except FileNotFoundError:
-        print("❌ Error: 'acs_housing_vw 1.csv' not found!")
+        print("Error: 'acs_housing_vw 1.csv' not found!")
         return None, None
     
     # Load crime data
     try:
         crime_df = pd.read_csv('crime_data.csv')
-        print(f"✅ Loaded {len(crime_df):,} crime records")
+        print(f"Loaded {len(crime_df):,} crime records")
     except FileNotFoundError:
-        print("❌ Error: 'crime_data.csv' not found!")
+        print("Error: 'crime_data.csv' not found!")
         return None, None
     
     print("\n🔧 Preprocessing data...")
@@ -120,7 +120,7 @@ def load_and_preprocess_data():
         merged_df[col] = merged_df[col].fillna(median_val)
         print(f"   Filled {col} missing values with median: {median_val:.1f}")
     
-    print(f"✅ Final dataset: {len(merged_df):,} records")
+    print(f"Final dataset: {len(merged_df):,} records")
     print(f"   Counties covered: {merged_df['county_clean'].nunique()}")
     print(f"   ZIP codes covered: {merged_df['zip'].nunique()}")
     
@@ -164,7 +164,7 @@ def engineer_features(df):
 def prepare_model_data(df):
     """Prepare final dataset for modeling"""
     
-    print("\n📋 Preparing modeling dataset...")
+    print("\nPreparing modeling dataset...")
     
     # Select features for modeling
     feature_columns = [
@@ -184,7 +184,7 @@ def prepare_model_data(df):
     # Ensure all features exist
     missing_features = [col for col in feature_columns if col not in df.columns]
     if missing_features:
-        print(f"❌ Missing features: {missing_features}")
+        print(f"Missing features: {missing_features}")
         return None, None, None
     
     # Prepare feature matrix and target
@@ -207,7 +207,7 @@ def prepare_model_data(df):
 def train_models(X, y, features):
     """Train multiple models and evaluate performance"""
     
-    print("\n🤖 Training models...")
+    print("\nTraining models...")
     
     # Split data
     X_train, X_test, y_train, y_test = train_test_split(
@@ -286,7 +286,7 @@ def train_models(X, y, features):
             print(f"      R²: {test_r2:.4f} | RMSE: {test_rmse:.4f} | CV: {cv_scores.mean():.4f}±{cv_scores.std():.4f}")
             
         except Exception as e:
-            print(f"      ❌ Failed: {e}")
+            print(f"      Failed: {e}")
             continue
     
     return trained_models, scaler, results, X_test, y_test
@@ -298,7 +298,7 @@ def train_models(X, y, features):
 def save_models(models, scaler, results, X_test, y_test, features):
     """Save trained models and metadata"""
     
-    print("\n💾 Saving models...")
+    print("\nSaving models...")
     
     # Create directory
     os.makedirs('saved_models', exist_ok=True)
@@ -308,25 +308,25 @@ def save_models(models, scaler, results, X_test, y_test, features):
         filename = name.lower().replace(' ', '_') + '_model.pkl'
         filepath = os.path.join('saved_models', filename)
         joblib.dump(model, filepath)
-        print(f"   ✅ Saved {name}")
+        print(f"   Saved {name}")
     
     # Save scaler
     scaler_path = os.path.join('saved_models', 'scaler.pkl')
     joblib.dump(scaler, scaler_path)
-    print(f"   ✅ Saved scaler")
+    print(f"   Saved scaler")
     
     # Save features list
     features_path = os.path.join('saved_models', 'features.pkl')
     with open(features_path, 'wb') as f:
         pickle.dump(features, f)
-    print(f"   ✅ Saved features")
+    print(f"   Saved features")
     
     # Save test data for diagnostics
     X_test_path = os.path.join('saved_models', 'X_test.pkl')
     y_test_path = os.path.join('saved_models', 'y_test.pkl')
     joblib.dump(X_test, X_test_path)
     joblib.dump(y_test, y_test_path)
-    print(f"   ✅ Saved test data for diagnostics")
+    print(f"   Saved test data for diagnostics")
     
     # Save metadata and results
     metadata = {
@@ -343,7 +343,7 @@ def save_models(models, scaler, results, X_test, y_test, features):
     metadata_path = os.path.join('saved_models', 'metadata.pkl')
     with open(metadata_path, 'wb') as f:
         pickle.dump(metadata, f)
-    print(f"   ✅ Saved metadata")
+    print(f"   Saved metadata")
     
     return metadata
 
@@ -351,7 +351,7 @@ def display_results(results):
     """Display training results summary"""
     
     print("\n" + "=" * 60)
-    print("📊 MODEL TRAINING RESULTS")
+    print("MODEL TRAINING RESULTS")
     print("=" * 60)
     
     results_df = pd.DataFrame(results).T
@@ -361,10 +361,10 @@ def display_results(results):
     if 'Test_R2' in results_df.columns:
         best_model = results_df['Test_R2'].idxmax()
         best_r2 = results_df.loc[best_model, 'Test_R2']
-        print(f"\n🏆 Best Model: {best_model} (R² = {best_r2:.4f})")
+        print(f"\nBest Model: {best_model} (R² = {best_r2:.4f})")
     
-    print("\n✅ All models saved to 'saved_models/' directory")
-    print("🚀 Ready to run Streamlit app!")
+    print("\nAll models saved to 'saved_models/' directory")
+    print("Ready to run Streamlit app!")
 
 # ================================
 # MAIN EXECUTION
@@ -392,7 +392,7 @@ def main():
     models, scaler, results, X_test, y_test = train_models(X, y, features)
     
     if not models:
-        print("❌ No models were successfully trained!")
+        print("No models were successfully trained!")
         return
     
     # Save everything
@@ -401,7 +401,7 @@ def main():
     # Display results
     display_results(results)
     
-    print(f"\n🎉 Training completed successfully!")
+    print(f"\n Training completed successfully!")
     print(f"   Models saved: {len(models)}")
     print(f"   Best performing model ready for predictions")
     print(f"   Run: streamlit run streamlit_app.py")
