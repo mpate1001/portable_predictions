@@ -257,7 +257,7 @@ def load_trained_models():
         return None
     
     try:
-        st.info("⚡ Loading pre-trained models...")
+        st.info("Loading pre-trained models...")
         
         # Load models
         models = {}
