@@ -1,0 +1,209 @@
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Housing Price Prediction Model Report</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+                h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
+                h2 { color: #34495e; border-bottom: 1px solid #bdc3c7; padding-bottom: 5px; }
+                h3 { color: #7f8c8d; }
+                .metric { background: #ecf0f1; padding: 10px; margin: 10px 0; border-radius: 5px; }
+                .highlight { background: #f1c40f; padding: 5px; border-radius: 3px; }
+                .success { color: #27ae60; font-weight: bold; }
+                .warning { color: #e67e22; font-weight: bold; }
+                .error { color: #e74c3c; font-weight: bold; }
+                table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+                th, td { border: 1px solid #bdc3c7; padding: 12px; text-align: left; }
+                th { background-color: #3498db; color: white; }
+                .code { background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 5px; font-family: monospace; }
+                img { max-width: 100%; height: auto; margin: 20px 0; border: 1px solid #bdc3c7; }
+            </style>
+        </head>
+        <body>
+        
+        <h1>🏠 Housing Price Prediction Model Report</h1>
+        <p><strong>Generated:</strong> 2025-07-15 15:31:51</p>
+        <p><strong>Authors:</strong> Joe Bryant, Mahek Patel, Nathan Deering</p>
+        
+        <h2>📋 Executive Summary</h2>
+        <div class="metric">
+            <p>This report documents the development, validation, and performance of machine learning models 
+            for housing price prediction across diverse markets. The system integrates housing characteristics 
+            with crime data to provide comprehensive investment recommendations.</p>
+        </div>
+        
+            <h2>📊 Data Overview</h2>
+            <div class="metric">
+                <p><strong>Dataset Size:</strong> 43,862 properties</p>
+                <p><strong>Geographic Coverage:</strong> 40 counties, 260 ZIP codes</p>
+                <p><strong>Price Range:</strong> $1,000 - $8,579,000</p>
+                <p><strong>Average Price:</strong> $1,021,647</p>
+                <p><strong>Coordinate Coverage:</strong> 100.0%</p>
+            </div>
+            
+            <h2>🔬 Methodology</h2>
+            
+            <h3>Data Sources</h3>
+            <ul>
+                <li><strong>Primary:</strong> American Community Survey (ACS) Housing Data</li>
+                <li><strong>Secondary:</strong> County-level Crime Statistics</li>
+                <li><strong>Geographic:</strong> ZIP code and county mappings with coordinates</li>
+            </ul>
+            
+            <h3>Data Preprocessing</h3>
+            <div class="code">
+                Target Transformation: Log transformation: y = log(VALP + 1)
+            </div>
+            <p><strong>Feature Engineering:</strong></p>
+            <ul>
+            <li>House age calculation from year built</li><li>Rooms per person ratio</li><li>Income to value ratio</li><li>Safety scores from crime statistics</li></ul>
+            <h2>🏆 Model Performance</h2>
+            <p class="success">Best Performing Model: Random Forest</p>
+            
+            <table>
+                <tr><th>Model</th><th>R² Score</th><th>RMSE</th><th>MAE</th></tr>
+            
+                <tr>
+                    <td>Linear Regression</td>
+                    <td>0.3772</td>
+                    <td>0.7182</td>
+                    <td>0.4667</td>
+                </tr>
+                
+                <tr>
+                    <td>Ridge Regression</td>
+                    <td>0.3772</td>
+                    <td>0.7182</td>
+                    <td>0.4666</td>
+                </tr>
+                
+                <tr>
+                    <td>Random Forest</td>
+                    <td>0.9987</td>
+                    <td>0.0327</td>
+                    <td>0.0088</td>
+                </tr>
+                
+                <tr>
+                    <td>XGBoost</td>
+                    <td>0.9946</td>
+                    <td>0.0670</td>
+                    <td>0.0207</td>
+                </tr>
+                </table>
+            <h2>✅ Model Validation</h2>
+            <div class="metric">
+                <p><strong>Validation Model:</strong> XGBoost</p>
+                <p><strong>Sample Size:</strong> 8,662 properties</p>
+                <p><strong>Prediction Accuracy:</strong></p>
+                <ul>
+                    <li>Within 10%: 99.9%</li>
+                    <li>Within 20%: 100.0%</li>
+                </ul>
+            </div>
+            
+                <h2>🔍 Feature Importance Analysis</h2>
+                <p>Top 5 most important features for price prediction:</p>
+                <ol>
+                <li><strong>income_to_value_ratio</strong> (Importance: 0.7392)</li><li><strong>hincp</strong> (Importance: 0.2214)</li><li><strong>fincp</strong> (Importance: 0.0246)</li><li><strong>violent_rate</strong> (Importance: 0.0026)</li><li><strong>safety_score</strong> (Importance: 0.0024)</li></ol>
+            <h2>💰 Investment Scoring Methodology</h2>
+            <p>Our investment recommendation system combines four key components:</p>
+            
+            <table>
+                <tr><th>Component</th><th>Weight</th><th>Description</th></tr>
+            
+                <tr>
+                    <td>Price Analysis</td>
+                    <td>35%</td>
+                    <td>Comparison of model predictions vs purchase price</td>
+                </tr>
+                
+                <tr>
+                    <td>Safety Score</td>
+                    <td>25%</td>
+                    <td>Crime-based safety rating for the area</td>
+                </tr>
+                
+                <tr>
+                    <td>Model Consensus</td>
+                    <td>20%</td>
+                    <td>Agreement between different models</td>
+                </tr>
+                
+                <tr>
+                    <td>Market Context</td>
+                    <td>20%</td>
+                    <td>Geographic and market type factors</td>
+                </tr>
+                </table>
+        <h2>📊 Key Visualizations</h2>
+        
+        <h3>Model Performance Comparison</h3>
+        <img src="model_performance_comparison.png" alt="Model Performance Comparison">
+        
+        <h3>Feature Importance</h3>
+        <img src="feature_importance.png" alt="Feature Importance">
+        
+        <h3>Model Validation</h3>
+        <img src="actual_vs_predicted.png" alt="Actual vs Predicted">
+        
+        <h3>Residuals Analysis</h3>
+        <img src="residuals_analysis.png" alt="Residuals Analysis">
+        
+        <h2>🎯 Conclusions and Recommendations</h2>
+        <div class="metric">
+            <h3>Model Performance</h3>
+            <ul>
+                <li>XGBoost consistently outperforms linear models for housing price prediction</li>
+                <li>Ensemble methods effectively capture non-linear relationships in housing data</li>
+                <li>Feature engineering significantly improves prediction accuracy</li>
+            </ul>
+            
+            <h3>Data Quality</h3>
+            <ul>
+                <li>Comprehensive dataset with good geographic coverage</li>
+                <li>Integration of crime data provides valuable location context</li>
+                <li>Log transformation effectively handles price distribution skewness</li>
+            </ul>
+            
+            <h3>Investment Application</h3>
+            <ul>
+                <li>Multi-component scoring provides balanced investment assessment</li>
+                <li>Crime data integration enables risk-adjusted recommendations</li>
+                <li>Model consensus improves prediction reliability</li>
+            </ul>
+            
+            <h3>Future Improvements</h3>
+            <ul>
+                <li>Incorporate additional economic indicators (unemployment, GDP growth)</li>
+                <li>Add school quality and transportation accessibility data</li>
+                <li>Implement time-series modeling for market trend analysis</li>
+                <li>Expand geographic coverage to more states and regions</li>
+            </ul>
+        </div>
+        
+        <h2>📚 Technical Specifications</h2>
+        <div class="code">
+        Programming Language: Python 3.8+
+        Key Libraries: scikit-learn, XGBoost, pandas, NumPy
+        Visualization: Plotly, Matplotlib, Seaborn
+        Interpretability: SHAP, Feature Importance
+        Deployment: Streamlit Web Application
+        </div>
+        
+        <h2>📖 References and Data Sources</h2>
+        <ul>
+            <li>U.S. Census Bureau American Community Survey (ACS)</li>
+            <li>County-level Crime Statistics</li>
+            <li>Geographic Coordinate Data</li>
+            <li>Chen, T., & Guestrin, C. (2016). XGBoost: A scalable tree boosting system</li>
+            <li>Lundberg, S. M., & Lee, S. I. (2017). A unified approach to interpreting model predictions</li>
+        </ul>
+        
+        <hr>
+        <p><em>This report was automatically generated by the Housing Prediction Analysis System.</em></p>
+        
+        </body>
+        </html>
+        
