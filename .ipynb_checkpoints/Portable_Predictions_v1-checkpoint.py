@@ -716,7 +716,7 @@ def display_property_analysis(datasets, model_data):
     col1, col2 = st.columns([3, 2])
     
     with col1:
-        st.header("🏡 Property Analysis")
+        st.header("Property Analysis")
         
         # Location selection
         st.subheader("Location")
@@ -773,20 +773,20 @@ def display_property_analysis(datasets, model_data):
         )
     
     with col2:
-        st.header("🎯 Analysis Options")
+        st.header("Analysis Options")
         
         analysis_type = st.selectbox(
             "Analysis Type",
             ["Full Investment Analysis", "Model Comparison", "SHAP Interpretability", "Model Diagnostics"]
         )
         
-        run_analysis = st.button("🔮 Run Analysis", type="primary", use_container_width=True)
+        run_analysis = st.button("Run Analysis", type="primary", use_container_width=True)
         
         # Display county crime info
         if selected_county:
             crime_data = get_county_crime_data(selected_county, datasets['crime'])
             
-            st.markdown("### 📈 Area Context")
+            st.markdown("###Area Context")
             col_a, col_b = st.columns(2)
             with col_a:
                 st.metric("Safety Score", f"{crime_data['safety_score']:.1f}/100")
@@ -835,7 +835,7 @@ def display_property_analysis(datasets, model_data):
             st.info("Please select a county to view the map.")
     
     with map_info_col2:
-        st.markdown("### 🎯 Map Features")
+        st.markdown("###Map Features")
         st.markdown("""
         **Auto-Zoom**: Map focuses on selected ZIP code
         
@@ -1616,7 +1616,7 @@ def main():
             st.caption(status)
     
     # Main content with tabs
-    tab1, tab2, tab3 = st.tabs(["Property Analysis", "Data Explorer", "🔬 Model Insights"])
+    tab1, tab2, tab3 = st.tabs(["Property Analysis", "Data Explorer", "Model Insights"])
     
     with tab1:
         display_property_analysis(datasets, model_data)
@@ -1635,7 +1635,7 @@ def main():
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            st.markdown("**🔧 Technical Stack**")
+            st.markdown("**Technical Stack**")
             st.markdown("""
             - **ML**: scikit-learn, XGBoost
             - **Data**: pandas, numpy  
@@ -1655,7 +1655,7 @@ def main():
             """)
         
         with col3:
-            st.markdown("**🎯 Analysis Types**")
+            st.markdown("**Analysis Types**")
             st.markdown("""
             - **Investment Analysis**: Score & recommendation
             - **Model Comparison**: Performance metrics
