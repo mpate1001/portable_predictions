@@ -87,34 +87,34 @@ st.markdown("""
 # DATABASE CONNECTION (Optional)
 # ================================
 
-DB_CONFIG = {
-    'host': 'ceq2kf3e33g245.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com',
-    'database': 'd9f89h4ju1lleh',
-    'user': 'ufnbfacj9c7u80',
-    'password': 'pa129f8c5adad53ef2c90db10cce0c899f8c7bdad022cca4e85a8729b19aad68d',
-    'port': 5432
-}
-
 @st.cache_resource
 def create_db_connection():
-    """Create database connection if available"""
-    if not DATABASE_AVAILABLE:
-        return None
-    
+    """Create database connection using Streamlit Secrets"""
     try:
-        password = urllib.parse.quote_plus(DB_CONFIG['password'])
-        connection_string = f"postgresql://{DB_CONFIG['user']}:{password}@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['database']}"
-        engine = create_engine(connection_string)
-        
+        cfg = st.secrets["postgres"]
+
+        # Safely build the connection URL
+        url = URL.create(
+            "postgresql+psycopg2",
+            username=cfg["user"],
+            password=cfg["password"],
+            host=cfg["host"],
+            port=cfg.get("port", 5432),
+            database=cfg["database"],
+            query={"sslmode": "require"},
+        )
+
+        engine = create_engine(url, pool_pre_ping=True)
+
         # Test connection
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
-        
+
         return engine
     except Exception as e:
         st.warning(f"Database connection failed: {e}. Using CSV fallback.")
         return None
-    # ================================
+# ================================
 # DATA LOADING FUNCTIONS
 # ================================
 
@@ -1505,7 +1505,7 @@ def main():
            - `crime_data.csv`
         
         3. **Database Access** (if using database mode):
-           - Install: `pip install psycopg2-binary sqlalchemy`
+           - Install: `∂ç`
            - Ensure database connection is working
         
         **Current Status:**
