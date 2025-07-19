@@ -1,0 +1,11 @@
+1. Lets focus on two states or specific regions. Ideally focus on the case study. My suggestions;
+    •	Specific ZIP codes, cities, or urban vs. rural contrasts within California.
+    •	2–3 representative case study regions (e.g., San Francisco, Fresno, and a rural area) and make it clear you’re comparing them.
+Lets focus on comparing urban housing trends in San Francisco with rural areas in inland California to test generalization of our models across socioeconomic and geographic boundaries
+
+
+2. Synthetic data will need to be generated with known linear and non-linear relationships between features and home prices to benchmark model interpretability and test overfitting behavior.
+
+3. We should review prior work on Zillow housing prediction and recent academic papers on housing price modeling using tree-based methods and SHAP values.
+
+4. Lets test external validity, we could incorporate the King County Housing dataset or compare predicted values against ACS-derived housing cost estimates.
