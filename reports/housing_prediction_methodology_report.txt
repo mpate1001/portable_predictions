@@ -4,7 +4,7 @@
                          Technical Methodology & Validation
 ================================================================================
 
-Report Generated: 2025-07-22 22:14:52
+Report Generated: 2025-07-22 22:20:02
 Authors: Joe Bryant, Mahek Patel, Nathan Deering
 Project: Portable Predictions - Learning Housing Prices Across Diverse Markets
 

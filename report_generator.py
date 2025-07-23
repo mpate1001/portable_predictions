@@ -752,7 +752,7 @@ class HousingPredictionReport:
         Deployment: Streamlit Web Application
         </div>
         
-        <h2>📖 References and Data Sources</h2>
+        <h2>References and Data Sources</h2>
         <ul>
             <li>U.S. Census Bureau American Community Survey (ACS)</li>
             <li>County-level Crime Statistics</li>

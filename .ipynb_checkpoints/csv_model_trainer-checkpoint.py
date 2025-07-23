@@ -55,7 +55,7 @@ def load_and_preprocess_data():
         print("Error: 'crime_data.csv' not found!")
         return None, None
     
-    print("\n🔧 Preprocessing data...")
+    print("\nPreprocessing data...")
     
     # Clean housing data
     housing_df = housing_df.copy()
@@ -129,7 +129,7 @@ def load_and_preprocess_data():
 def engineer_features(df):
     """Create additional features for better predictions"""
     
-    print("\n⚙️ Engineering features...")
+    print("\nEngineering features...")
     
     df = df.copy()
     
