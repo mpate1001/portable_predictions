@@ -88,7 +88,7 @@ class HousingPredictionReport:
     def generate_data_overview_report(self):
         """Generate comprehensive data overview and quality report"""
         
-        print("📈 Generating data overview report...")
+        print("Generating data overview report...")
         
         # Clean data for analysis
         housing_clean = self.housing_data.copy()
@@ -752,7 +752,7 @@ class HousingPredictionReport:
         Deployment: Streamlit Web Application
         </div>
         
-        <h2>📖 References and Data Sources</h2>
+        <h2>References and Data Sources</h2>
         <ul>
             <li>U.S. Census Bureau American Community Survey (ACS)</li>
             <li>County-level Crime Statistics</li>
@@ -1580,7 +1580,7 @@ Report Generation Completed: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
     
     # Generate report
 def main():
-    print("🏠 HOUSING PREDICTION MODEL REPORT GENERATOR")
+    print("HOUSING PREDICTION MODEL REPORT GENERATOR")
     print("=" * 60)
     print("This tool generates a comprehensive methodology and validation report")
     print("for the housing price prediction models.")

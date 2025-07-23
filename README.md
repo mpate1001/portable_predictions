@@ -8,6 +8,9 @@ A Streamlit app for analyzing and predicting housing prices across California co
 - SHAP-based model interpretability
 - Investment recommendation score
 
+## Run on StreamLit
+https://portablepredictions.streamlit.app/
+
 ## Run Locally
 
 ```bash
