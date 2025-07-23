@@ -1,7 +1,7 @@
 
 HOUSING PRICE PREDICTION MODEL - EXECUTIVE SUMMARY
 ================================================
-Generated: 2025-07-15 15:31:51
+Generated: 2025-07-22 22:14:52
 Authors: Joe Bryant, Mahek Patel, Nathan Deering
 
 OVERVIEW
@@ -12,40 +12,40 @@ comprehensive investment analysis.
 
 KEY FINDINGS
 -----------
-• Best performing model: Random Forest (R² = 0.999)
-• Model ensemble provides robust predictions across 4 algorithms
-• Dataset: 43,862 properties across 40 counties
-• Geographic coverage: 100.0% with coordinates
-• Prediction accuracy: 99.9% within 10% of actual values
+â€¢ Best performing model: Random Forest (RÂ² = 0.999)
+â€¢ Model ensemble provides robust predictions across 4 algorithms
+â€¢ Dataset: 43,862 properties across 40 counties
+â€¢ Geographic coverage: 100.0% with coordinates
+â€¢ Prediction accuracy: 99.9% within 10% of actual values
 
 METHODOLOGY STRENGTHS
 -------------------
-• Multi-model approach reduces prediction variance
-• Feature engineering captures key property relationships  
-• Crime data integration enables risk assessment
-• SHAP analysis provides model interpretability
-• Comprehensive validation with diagnostic testing
+â€¢ Multi-model approach reduces prediction variance
+â€¢ Feature engineering captures key property relationships  
+â€¢ Crime data integration enables risk assessment
+â€¢ SHAP analysis provides model interpretability
+â€¢ Comprehensive validation with diagnostic testing
 
 PRACTICAL APPLICATIONS
 ---------------------
-• Real estate investment decision support
-• Property valuation for lending institutions
-• Market analysis for urban planning
-• Risk assessment for insurance pricing
+â€¢ Real estate investment decision support
+â€¢ Property valuation for lending institutions
+â€¢ Market analysis for urban planning
+â€¢ Risk assessment for insurance pricing
 
 TECHNICAL IMPLEMENTATION
 -----------------------
-• End-to-end ML pipeline from data loading to prediction
-• Interactive web application for user analysis
-• Automated report generation for methodology transparency
-• Scalable architecture for additional markets
+â€¢ End-to-end ML pipeline from data loading to prediction
+â€¢ Interactive web application for user analysis
+â€¢ Automated report generation for methodology transparency
+â€¢ Scalable architecture for additional markets
 
 VALIDATION RESULTS
 -----------------
-• Models pass linearity, homoscedasticity, and bias tests
-• Residuals follow approximately normal distribution
-• Cross-validation confirms generalization capability
-• Investment scoring validated against market conditions
+â€¢ Models pass linearity, homoscedasticity, and bias tests
+â€¢ Residuals follow approximately normal distribution
+â€¢ Cross-validation confirms generalization capability
+â€¢ Investment scoring validated against market conditions
 
 RECOMMENDATION
 -------------
