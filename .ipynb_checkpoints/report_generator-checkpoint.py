@@ -88,7 +88,7 @@ class HousingPredictionReport:
     def generate_data_overview_report(self):
         """Generate comprehensive data overview and quality report"""
         
-        print("📈 Generating data overview report...")
+        print("Generating data overview report...")
         
         # Clean data for analysis
         housing_clean = self.housing_data.copy()
@@ -1580,7 +1580,7 @@ Report Generation Completed: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
     
     # Generate report
 def main():
-    print("🏠 HOUSING PREDICTION MODEL REPORT GENERATOR")
+    print("HOUSING PREDICTION MODEL REPORT GENERATOR")
     print("=" * 60)
     print("This tool generates a comprehensive methodology and validation report")
     print("for the housing price prediction models.")
