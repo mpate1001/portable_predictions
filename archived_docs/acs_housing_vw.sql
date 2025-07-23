@@ -1,0 +1,1 @@
+SELECT * FROM acs_housing_vw

@@ -1,0 +1,34 @@
+# Core packages
+numpy
+pandas
+streamlit
+
+# Serialization
+pickle5  # standard pickle is built-in but pickle5 is safest if you need pip
+joblib
+
+# Plots
+matplotlib
+seaborn
+plotly
+
+# Machine Learning
+scikit-learn
+xgboost
+shap
+tensorflow
+keras
+
+# Database
+SQLAlchemy
+
+# Utils
+warnings  # built-in, no need to list
+datetime  # built-in, no need to list
+os  # built-in, no need to list
+
+# If you have a local module
+# Model_Trainer  # REMOVE unless you publish as a package
+
+# Note: If deploying to Streamlit Cloud, specify Python version if needed:
+# python_version = "3.10"
