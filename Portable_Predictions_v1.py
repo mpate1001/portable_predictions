@@ -4,40 +4,45 @@
 # Authors: Joe Bryant, Mahek Patel, Nathan Deering
 # ================================
 
+# Core Libraries
+import os
+import pickle
+import joblib
+import warnings
+from datetime import datetime
+
 import numpy as np
 import pandas as pd
 import streamlit as st
-import pickle
-import joblib
-import os
-from datetime import datetime
+
+# Plotting Libraries
 import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import warnings
 
-warnings.filterwarnings('ignore')
-
-# Folium for mapping
+# Streamlit Mapping
 import folium
 from streamlit_folium import folium_static
 
-# ML Libraries
+# Machine Learning Evaluation
 from sklearn.metrics import mean_squared_error, r2_score
 
-# Database connection (optional)
+# Suppress warnings
+warnings.filterwarnings("ignore")
+
+# Database Support
 try:
     import psycopg2
     from sqlalchemy import create_engine, text
-    import urllib.parse
+    from sqlalchemy.engine import URL  # Required if using SQLAlchemy's URL.create()
 
     DATABASE_AVAILABLE = True
 except ImportError:
     DATABASE_AVAILABLE = False
 
-# SHAP for interpretability
+# SHAP Support
 try:
     import shap
 
@@ -86,29 +91,29 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+
 # ================================
 # DATABASE CONNECTION (Optional)
 # ================================
 
-DB_CONFIG = {
-    'host': 'ceq2kf3e33g245.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com',
-    'database': 'd9f89h4ju1lleh',
-    'user': 'ufnbfacj9c7u80',
-    'password': 'pa129f8c5adad53ef2c90db10cce0c899f8c7bdad022cca4e85a8729b19aad68d',
-    'port': 5432
-}
-
-
 @st.cache_resource
 def create_db_connection():
-    """Create database connection if available"""
-    if not DATABASE_AVAILABLE:
-        return None
-
+    """Create database connection using Streamlit Secrets"""
     try:
-        password = urllib.parse.quote_plus(DB_CONFIG['password'])
-        connection_string = f"postgresql://{DB_CONFIG['user']}:{password}@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['database']}"
-        engine = create_engine(connection_string)
+        cfg = st.secrets["postgres"]
+
+        # Safely build the connection URL
+        url = URL.create(
+            "postgresql+psycopg2",
+            username=cfg["user"],
+            password=cfg["password"],
+            host=cfg["host"],
+            port=cfg.get("port", 5432),
+            database=cfg["database"],
+            query={"sslmode": "require"},
+        )
+
+        engine = create_engine(url, pool_pre_ping=True)
 
         # Test connection
         with engine.connect() as conn:
@@ -118,9 +123,9 @@ def create_db_connection():
     except Exception as e:
         st.warning(f"Database connection failed: {e}. Using CSV fallback.")
         return None
-    # ================================
 
 
+# ================================
 # DATA LOADING FUNCTIONS
 # ================================
 
@@ -259,7 +264,7 @@ def load_trained_models():
         return None
 
     try:
-        st.info(" Loading pre-trained models...")
+        st.info("Loading pre-trained models...")
 
         # Load models
         models = {}
@@ -515,7 +520,7 @@ def create_folium_map(county, zip_code, housing_data, crime_data):
                 {popup_prefix}{row['zip']}<br>
                 City: {row['primary_city']}<br>
                 Properties: {row['property_count']} listings<br>
-               Avg Price: ${row['avg_price']:,.0f}<br>
+                Avg Price: ${row['avg_price']:,.0f}<br>
                 Safety Score: {safety_score:.1f}/100<br>
                 Violent Crime: {county_crime['violent_rate']:.0f}<br>
                 Property Crime: {county_crime['property_rate']:.0f}
@@ -586,7 +591,7 @@ def create_folium_map(county, zip_code, housing_data, crime_data):
         z-index: 1000;
     ">
         <strong>{county} County</strong><br>
-        Safety Score: {safety_score:.1f}/100<br>
+        🛡️ Safety Score: {safety_score:.1f}/100<br>
         Properties: {len(county_housing):,} listings
     </div>
     """
@@ -802,7 +807,7 @@ def display_property_analysis(datasets, model_data):
         if selected_county:
             crime_data = get_county_crime_data(selected_county, datasets['crime'])
 
-            st.markdown("###Area Context")
+            st.markdown("### Area Context")
             col_a, col_b = st.columns(2)
             with col_a:
                 st.metric("Safety Score", f"{crime_data['safety_score']:.1f}/100")
@@ -863,7 +868,7 @@ def display_property_analysis(datasets, model_data):
         - 🔴 High risk (<60 score)
         - 🔵 Selected ZIP code
 
-        **💡 Interactive**: Click ZIP codes for detailed property information
+        **Interactive**: Click ZIP codes for detailed property information
         """)
 
         if selected_county:
@@ -1118,7 +1123,7 @@ def display_data_explorer(datasets):
 def display_model_insights(model_data):
     """Enhanced model performance and insights"""
 
-    st.header(" Model Performance & Technical Insights")
+    st.header("Model Performance & Technical Insights")
 
     if not model_data or 'metadata' not in model_data:
         st.warning("Model data not available")
@@ -1370,11 +1375,11 @@ def display_full_investment_analysis(predictions, purchase_price, crime_data, co
     with score_col1:
         st.metric("Price Analysis", f"{score_breakdown['price_score']:.1f}/100",
                   f"{score_breakdown['price_differential']:.1%} vs purchase price")
-        st.metric("🔒 Safety Score", f"{score_breakdown['safety_score']:.1f}/100",
+        st.metric("Safety Score", f"{score_breakdown['safety_score']:.1f}/100",
                   "Based on crime statistics")
 
     with score_col2:
-        st.metric("🤝 Model Consensus", f"{score_breakdown['consensus_score']:.1f}/100",
+        st.metric("Model Consensus", f"{score_breakdown['consensus_score']:.1f}/100",
                   f"±${score_breakdown['prediction_std']:,.0f} variation")
         st.metric("Market Context", f"{score_breakdown['context_score']:.1f}/100",
                   f"{county} market factors")
@@ -1403,7 +1408,7 @@ def display_full_investment_analysis(predictions, purchase_price, crime_data, co
     display_prediction_comparison(predictions, purchase_price)
 
     # Investment insights
-    st.subheader("💡 Investment Insights")
+    st.subheader("Investment Insights")
 
     insights = []
 
@@ -1452,7 +1457,7 @@ def display_model_performance(metadata):
 def display_prediction_comparison(predictions, purchase_price):
     """Display model prediction comparison"""
 
-    st.subheader("🤖 Model Predictions Comparison")
+    st.subheader("Model Predictions Comparison")
 
     pred_df = pd.DataFrame({
         'Model': list(predictions.keys()),
@@ -1520,20 +1525,20 @@ def main():
         st.error("Required data not loaded. Please check data files and run the model trainer first.")
 
         # Provide helpful guidance
-        st.markdown("###Setup Instructions")
+        st.markdown("### Setup Instructions")
         st.markdown("""
         **To use this application, you need:**
 
         1. **Trained Models**: Run one of these first:
            - `python csv_model_trainer.py` (for CSV-based training)
-           - `python database_model_trainer.py` (for database-based training)
+           - `python model_trainer.py` (for database-based training)
 
         2. **Data Files** (if using CSV mode):
            - `acs_housing_vw.csv` 
            - `crime_data.csv`
 
         3. **Database Access** (if using database mode):
-           - Install: `pip install psycopg2-binary sqlalchemy`
+           - Install: `∂ç`
            - Ensure database connection is working
 
         **Current Status:**
@@ -1549,7 +1554,7 @@ def main():
 
         # Check for CSV files
         csv_files = ['acs_housing_vw.csv', 'crime_data.csv']
-        csv_status = [f"{'CSV Found' if os.path.exists(f) else 'CSV Not Found'} {f}" for f in csv_files]
+        csv_status = [f"{'✅' if os.path.exists(f) else '❌'} {f}" for f in csv_files]
         st.write("CSV Files:")
         for status in csv_status:
             st.write(f"   {status}")
@@ -1594,7 +1599,7 @@ def main():
         st.markdown("---")
 
         # System metrics
-        st.markdown("###System Coverage")
+        st.markdown("### System Coverage")
         st.info(f"**Models**: {len(model_data['models'])} trained")
         st.info(f"**Counties**: {len(datasets['counties'])} covered")
         st.info(f"**Properties**: {len(datasets['housing']):,} records")
@@ -1603,7 +1608,7 @@ def main():
         st.markdown("---")
 
         # Quick data insights
-        st.markdown("###Market Insights")
+        st.markdown("### Market Insights")
         avg_price = datasets['housing']['valp'].mean()
         median_price = datasets['housing']['valp'].median()
         st.metric("Average Price", f"${avg_price:,.0f}")
@@ -1614,7 +1619,7 @@ def main():
 
         # Feature availability status
         st.markdown("---")
-        st.markdown("###Features Available")
+        st.markdown("### Features Available")
 
         # Check for optional features
         features_status = []
@@ -1644,7 +1649,7 @@ def main():
             st.caption(status)
 
     # Main content with tabs
-    tab1, tab2, tab3 = st.tabs(["Property Analysis", "Data Explorer", " Model Insights"])
+    tab1, tab2, tab3 = st.tabs(["Property Analysis", "Data Explorer", "Model Insights"])
 
     with tab1:
         display_property_analysis(datasets, model_data)
